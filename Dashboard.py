@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Mar 28 20:17:37 2021
-
-@author: Gunardilin
-"""
 
 # from pandas_datareader import data
 import plotly.graph_objects as go
@@ -24,13 +19,25 @@ from foreigncompanies import get_foreigncompanies_info
 from get_statement import get_statement , open_in_excel
 from get_financial_df import get_financial_df, calculate_ratio
 from human_readable_format import readable_format, convert_percent
+from warning_sign import warning_sign
+from future_value import generate_futureprice
 
 financial_df_table = pd.DataFrame({'Year':[], 'Shareholder Equity':[], 
-                                   'Long-Term Debt':[], 'EPS':[],
-                                   'EPS-Growth':[], 'Net Income': [],
-                                   'ROA':[], 'Interest Expense':[],
-                                   'EBITDA':[], 'ROE':[],
-                                   'Interest Coverage Ratio': []})
+                                    'Long-Term Debt':[], 'EPS':[],
+                                    'EPS-Growth':[], 'Net Income': [],
+                                    'ROA':[], 'Interest Expense':[],
+                                    'EBITDA':[], 'ROE':[],
+                                    'Interest Coverage Ratio': []})
+
+warning_df_table = pd.DataFrame({'Warning': ['None']})
+
+buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
+                               'Last EPS': [], 'EPS in 5 years': [],
+                               'Min PE': [], 'FV': [], 'PV': [],
+                               'Margin Price': [], 'Current Share Price': [],
+                               'Buy/Sell': []})
+
+stock_price_df = 0
 
 app = dash.Dash(__name__)
 
@@ -41,63 +48,128 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        options=[
-            {'label': 'Coke', 'value': 'COKE'},
-            {'label': 'Tesla', 'value': 'TSLA'},
-            {'label': 'Apple', 'value': 'AAPL'}
-            ], value='AAPL'
+        # options=[
+            # {'label': 'Coke', 'value': 'COKE'},
+            # {'label': 'Tesla', 'value': 'TSLA'},
+            # {'label': 'Apple', 'value': 'AAPL'},
+            # {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+            # {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+            # ], value='AAPL'
         
         # For productive deployment use the following options:
-        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-        #                                           get_russel3000_info(),
-        #                                           get_foreigncompanies_info()],
-        #                                           ignore_index=True))
+        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+                                                  get_russel3000_info(),
+                                                  get_foreigncompanies_info()],
+                                                  ignore_index=True)) +
+        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
     
-    #html.Table(id='financial_df')
+    html.H3('Critical variables'),
+    
     dash_table.DataTable(
         id='financial_df', 
         columns=[{"name": i, "id": i} for i in financial_df_table.columns],
-        data=financial_df_table.to_dict('records')
+        data=financial_df_table.to_dict('records'), 
+        style_header={
+            'backgroundColor': 'white', 
+            'fontWeight': 'bold'
+            }
         ),
-    html.Br(),
-    html.Br(),
     
-    # dcc.Slider(
-    # min=0,
-    # max=10,
-    # step=None,
-    # marks={
-    #     0: '0 °F',
-    #     3: '3 °F',
-    #     5: '5 °F',
-    #     7.65: '7.65 °F',
-    #     10: '10 °F'
-    # },
-    # value=5)
+    html.Br(),
+    html.Hr(),
+    # html.Br(),
+    html.H3('Warnings:'),
+    
+    dash_table.DataTable(
+        id='warning_df',
+        columns=[{"name": i, "id": i} for i in warning_df_table.columns],
+        data=warning_df_table.to_dict('records'),
+        style_header={
+            'backgroundColor': 'white', 
+            'fontWeight': 'bold'
+            },
+        style_cell={
+            'textAlign': 'left'
+            },
+        ), 
+    
+    html.Br(),
+    html.Hr(),
+    html.H3('[Assumption] Inflation over 5 years:'),
+    
+    dcc.Slider(
+        id='inflation_slider',
+        min=0,
+        max=100,
+        step=5,
+        marks={i: '{}%'.format(i) for i in range(0, 100, 5)},
+        value=15),
+    
+    html.Br(),
+    # html.Hr(),
+    html.H3('[Tolerance] Margin Calculation Rate:'),
+    
+    dcc.Slider(
+        id='margin_slider',
+        min=0,
+        max=100,
+        step=5,
+        marks={i: '{}%'.format(i) for i in range(0, 100, 5)},
+        value=25),
+    
+    html.Br(),
+    # html.Hr(),
+    html.H3('Buy/Sell:'),
+    
+    dash_table.DataTable(
+        id='buy_sell',
+        columns=[{"name": i, "id": i} for i in buy_sell_table.columns],
+        data=buy_sell_table.to_dict('records'),
+        style_header={
+            'backgroundColor': 'white', 
+            'fontWeight': 'bold'
+            },
+        style_cell={
+            'textAlign': 'left'
+            },
+        ),
+    
+    html.Br(),
+    html.Hr()
 ])
 
-# For stock graph
+# For stock graph 1
 @app.callback(
     Output(component_id='my-graph', component_property='figure'),
-    Input(component_id='my-dropdown', component_property='value'))
+    Input(component_id='my-dropdown', component_property='value'),
+    prevent_initial_call=True)
 def update_graph(dropdown_properties):
-    df = get_stock_price(dropdown_properties)
-    # print("**********", df)
-    # print("**********", type(df))
-    figure = go.Figure(data=[go.Scatter(x=df.index, y=df.Close, name=dropdown_properties)])
+    # print('1')
+    global stock_price_df
+    stock_price_df = get_stock_price(dropdown_properties)
+    figure = go.Figure(data=[go.Scatter(x=stock_price_df.index, 
+                                        y=stock_price_df.Close, 
+                                        name=dropdown_properties)])
+    # print('1 finish')
     return figure
 
-# For financial_df table
+# For financial_df table and warning_df_table 2
 @app.callback(
     Output(component_id='financial_df', component_property='data'),
-    Input(component_id='my-dropdown', component_property='value'))
-def generate_financial_df_table(stock_ticker, max_rows=10):
-    #global financial_df_table
+    Output(component_id='warning_df', component_property='data'),
+    Input(component_id='my-dropdown', component_property='value'),
+    prevent_initial_call=True)
+def generate_financial_warning_df_table(stock_ticker, max_rows=10):
+    # print('2')
+    global financial_df_table
     financial_df_table = calculate_ratio(get_financial_df(get_statement
                                                           (stock_ticker)))
+    # open_in_excel(financial_df_table)
     # Formating the table output
     df_written = financial_df_table.reset_index()
     
@@ -118,17 +190,41 @@ def generate_financial_df_table(stock_ticker, max_rows=10):
             'interestexpense': 'Interest Expense', 'ebitda': 'EBITDA',
             'roe': 'ROE', 'interestcoverageratio': 'Interest Coverage Ratio'})
     
-    # table_header = [html.Tr([html.Th(col) for col in df_written.columns])]
-    # # print(table_header)
-    
-    # table_body = [html.Tr([html.Td(df_written.iloc[i][col]) 
-    #                         for col in df_written.columns]) 
-    #               for i in range(min(len(df_written), max_rows))]
-    # # print(table_body)
-    
-    # return table_header + table_body
-    
-    return df_written.to_dict('records')
+    # Generate Warning_df_table
+    warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
+                                    columns=['Warning']).to_dict('records')
+    # print('2 finish')
+    return df_written.to_dict('records'), warning_df_table
 
+# For buy_sell_table 3
+@app.callback(
+    Output(component_id='buy_sell', component_property='data'),
+    Input(component_id='inflation_slider', component_property='value'),
+    Input(component_id='margin_slider', component_property='value'),
+    Input(component_id='my-dropdown', component_property='value'),
+    Input(component_id='financial_df', component_property='data'),
+    prevent_initial_call=True)
+def generate_decision(inflation, margin, ticker, start):
+    # print('3')
+    global buy_sell_table
+    futureprice_df = generate_futureprice(ticker, financial_df_table, 
+                                          inflation/100, margin/100, 
+                                          stock_price_df).reset_index()
+    buy_sell_table = futureprice_df.rename(columns={
+        'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',
+        'lasteps': 'Last EPS', 'futureeps': 'EPS in 5 years', 
+        'min_pe': 'Min PE', 'marginprice': 'Margin Price',
+        'currentshareprice': 'Current Share Price', 'decision': 'Buy/Sell'
+        })
+    buy_sell_table[['Annual Growth Rate']] = buy_sell_table[['Annual Growth Rate']].applymap(convert_percent)
+    buy_sell_table[['Last EPS', 'EPS in 5 years', 'Min PE', 'FV', 'PV', 
+                    'Margin Price', 'Current Share Price']] = np.round(
+                        buy_sell_table[['Last EPS', 'EPS in 5 years', 'Min PE', 
+                                        'FV', 'PV', 'Margin Price', 
+                                        'Current Share Price']], 2)
+    buy_sell_table_written = buy_sell_table.to_dict('records')
+    # print('3 finish')
+    return buy_sell_table_written
+                        
 if __name__ == '__main__':
     app.run_server()
