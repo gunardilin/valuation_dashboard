@@ -1,0 +1,5 @@
+1. Add one column for free cash flow.
+2. Layout: bunter.
+3. EPS-Growth: median.
+4. Ampel: grün, gelb, rot: Buy, Sell, Hold
+5. Expand company list for non sp500 company.
