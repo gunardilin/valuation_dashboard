@@ -12,6 +12,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+import dash_table
 # from datetime import datetime as dt
 
 import pandas as pd
@@ -20,11 +21,16 @@ from get_stock_price import get_stock_price
 from sp500 import get_sp500_info, format_for_dashdropdown
 from russel3000 import get_russel3000_info
 from foreigncompanies import get_foreigncompanies_info
-from get_statement import get_statement #, open_in_excel
+from get_statement import get_statement , open_in_excel
 from get_financial_df import get_financial_df, calculate_ratio
 from human_readable_format import readable_format, convert_percent
 
-financial_df_table = 0
+financial_df_table = pd.DataFrame({'Year':[], 'Shareholder Equity':[], 
+                                   'Long-Term Debt':[], 'EPS':[],
+                                   'EPS-Growth':[], 'Net Income': [],
+                                   'ROA':[], 'Interest Expense':[],
+                                   'EBITDA':[], 'ROE':[],
+                                   'Interest Coverage Ratio': []})
 
 app = dash.Dash(__name__)
 
@@ -36,7 +42,6 @@ app.layout = html.Div([
         id='my-dropdown',
         # For testing purpose use the following options:
         options=[
-            {'label': 'Abiomed', 'value': 'ABMD'},
             {'label': 'Coke', 'value': 'COKE'},
             {'label': 'Tesla', 'value': 'TSLA'},
             {'label': 'Apple', 'value': 'AAPL'}
@@ -51,7 +56,27 @@ app.layout = html.Div([
     
     dcc.Graph(id='my-graph', figure={}),
     
-    html.Table(id='financial_df')
+    #html.Table(id='financial_df')
+    dash_table.DataTable(
+        id='financial_df', 
+        columns=[{"name": i, "id": i} for i in financial_df_table.columns],
+        data=financial_df_table.to_dict('records')
+        ),
+    html.Br(),
+    html.Br(),
+    
+    # dcc.Slider(
+    # min=0,
+    # max=10,
+    # step=None,
+    # marks={
+    #     0: '0 °F',
+    #     3: '3 °F',
+    #     5: '5 °F',
+    #     7.65: '7.65 °F',
+    #     10: '10 °F'
+    # },
+    # value=5)
 ])
 
 # For stock graph
@@ -67,10 +92,10 @@ def update_graph(dropdown_properties):
 
 # For financial_df table
 @app.callback(
-    Output(component_id='financial_df', component_property='children'),
+    Output(component_id='financial_df', component_property='data'),
     Input(component_id='my-dropdown', component_property='value'))
 def generate_financial_df_table(stock_ticker, max_rows=10):
-    global financial_df_table
+    #global financial_df_table
     financial_df_table = calculate_ratio(get_financial_df(get_statement
                                                           (stock_ticker)))
     # Formating the table output
@@ -79,17 +104,8 @@ def generate_financial_df_table(stock_ticker, max_rows=10):
     df_written[['shareholderequity', 'longtermdebt', 'netincome', 
                 'interestexpense', 'ebitda']] = df_written[
                     ['shareholderequity', 'longtermdebt', 'netincome', 
-                     'interestexpense', 'ebitda']].applymap(readable_format)
-    
-        # df_written[['shareholderequity', 'longtermdebt', 'netincome', 
-        #         'interestexpense', 'ebitda']] = np.round(
-        #             df_written[['shareholderequity', 'longtermdebt', 
-        #                         'netincome', 'interestexpense', 'ebitda']], 0)
+                      'interestexpense', 'ebitda']].applymap(readable_format)            
                     
-    # df_written['epsgrowth'] = np.round(df_written['epsgrowth'], 4)
-    # df_written[['eps', 'roa', 'roe', 'interestcoverageratio']] = np.round(
-    #     df_written[['eps', 'roa', 'roe', 'interestcoverageratio']], 2)
-    
     df_written[['epsgrowth', 'roa', 'roe']] = df_written[
         ['epsgrowth', 'roa', 'roe']].applymap(convert_percent)
     df_written[['eps', 'interestcoverageratio']] = np.round(
@@ -102,15 +118,17 @@ def generate_financial_df_table(stock_ticker, max_rows=10):
             'interestexpense': 'Interest Expense', 'ebitda': 'EBITDA',
             'roe': 'ROE', 'interestcoverageratio': 'Interest Coverage Ratio'})
     
-    table_header = [html.Tr([html.Th(col) for col in df_written.columns])]
-    # print(table_header)
+    # table_header = [html.Tr([html.Th(col) for col in df_written.columns])]
+    # # print(table_header)
     
-    table_body = [html.Tr([html.Td(df_written.iloc[i][col]) 
-                           for col in df_written.columns]) 
-                  for i in range(min(len(df_written), max_rows))]
-    # print(table_body)
+    # table_body = [html.Tr([html.Td(df_written.iloc[i][col]) 
+    #                         for col in df_written.columns]) 
+    #               for i in range(min(len(df_written), max_rows))]
+    # # print(table_body)
     
-    return table_header + table_body
+    # return table_header + table_body
+    
+    return df_written.to_dict('records')
 
 if __name__ == '__main__':
     app.run_server()
