@@ -112,7 +112,7 @@ app.layout = html.Div([
     
     html.Br(),
     # html.Hr(),
-    html.H3('[Tolerance] Margin Calculation Rate:'),
+    html.H3('[Tolerance] Margin of Safety:'),
     
     dcc.Slider(
         id='margin_slider',
