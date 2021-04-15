@@ -79,14 +79,6 @@ app.layout = html.Div([
             'fontWeight': 'bold'
             },
         style_data_conditional=[
-            # {
-            #     'if': {
-            #         'filter_query': '{EPS} <= 0',
-            #         'column_id': 'EPS'
-            #             },
-            #     'backgroundColor': 'tomato',
-            #     'color': 'white'
-            #     }
             {
                 'if': {
                     'filter_query': '{EPS} <= 0',
@@ -173,6 +165,25 @@ app.layout = html.Div([
         style_cell={
             'textAlign': 'left'
             },
+        style_data_conditional=[
+            {
+                'if': {
+                    'filter_query': '{Buy/Sell} contains "Buy"',
+                    'column_id': 'Buy/Sell',
+                },
+                'backgroundColor': '#3D9970',
+                'color': 'white'
+                },
+            {
+                'if': {
+                    'filter_query': '{Buy/Sell} contains "Sell"',
+                    'column_id': 'Buy/Sell'
+                        },
+                'backgroundColor': '#FF4136',
+                'color': 'white'
+                },
+            
+            ]
         ),
     
     html.Br(),
