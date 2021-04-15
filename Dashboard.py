@@ -77,7 +77,43 @@ app.layout = html.Div([
         style_header={
             'backgroundColor': 'white', 
             'fontWeight': 'bold'
-            }
+            },
+        style_data_conditional=[
+            # {
+            #     'if': {
+            #         'filter_query': '{EPS} <= 0',
+            #         'column_id': 'EPS'
+            #             },
+            #     'backgroundColor': 'tomato',
+            #     'color': 'white'
+            #     }
+            {
+                'if': {
+                    'filter_query': '{EPS} <= 0',
+                    'column_id': 'EPS'
+                        },
+                'backgroundColor': '#FF4136',
+                'color': 'white'
+                },
+            
+            {
+                'if': {
+                    'filter_query': '{Net Income} contains "-"',
+                    'column_id': 'Net Income',
+                },
+                'backgroundColor': '#FF4136',
+                'color': 'white'
+                },
+            {
+                'if': {
+                    'filter_query': '{EPS-Growth} contains "-"',
+                    'column_id': 'EPS-Growth'
+                        },
+                'backgroundColor': '#FF4136',
+                'color': 'white'
+                },
+            
+            ]
         ),
     
     html.Br(),
