@@ -34,7 +34,6 @@
 # import requests
 # from bs4 import BeautifulSoup
 import pandas as pd
-import xlwings as xw
 from get_statement import open_in_excel
 
 # def get_sp500_info():
