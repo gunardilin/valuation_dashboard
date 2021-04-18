@@ -5,7 +5,7 @@ Created on Mon Mar 29 20:28:41 2021
 @author: Gunardilin
 """
 import pandas as pd
-import xlwings as xw
+from get_statement import open_in_excel
 from datetime import datetime
 
 def last_row(symbol, name):
@@ -23,9 +23,6 @@ def get_foreigncompanies_info():
         else:
             df_list.append(df)
     return pd.concat(df_list).reset_index(drop=True).rename(columns={'Name': 'Security'})
-
-def open_in_excel(dataframe):
-    xw.view(dataframe)
     
 if __name__ == "__main__":
     start = datetime.now()
