@@ -6,6 +6,7 @@ Created on Fri Mar 12 16:12:35 2021
 """
 import pandas as pd
 import numpy as np
+import sys
 # import html5lib
 # from bs4 import BeautifulSoup
 
@@ -46,11 +47,12 @@ def get_statement(ticker):
     return tables_list
 
 def open_in_excel(dataframe):
-    import xlwings as xw
-    xw.view(dataframe)
+    if sys.platform in ['darwin', 'win32']:
+        import xlwings as xw
+        xw.view(dataframe)
 
 if __name__ == "__main__":
     tables_list = get_statement("baba")
-    # for i in tables_list:
-    #     open_in_excel(i)
+    for i in tables_list:
+        open_in_excel(i)
         

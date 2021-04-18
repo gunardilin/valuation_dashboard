@@ -6,7 +6,7 @@
 # Created Date: Sunday, February 28th 2021, 3:32:50 pm
 # Author: Gunardi Ali
 # -----
-# Last Modified: Thursday, March 4th 2021, 8:23:50 pm
+# Last Modified: Sunday, April 18th 2021, 4:21:14 pm
 # Modified By: Gunardi Ali
 # -----
 # Copyright (c) 2021 Gunardi Ali
@@ -35,6 +35,7 @@
 # from bs4 import BeautifulSoup
 import pandas as pd
 import xlwings as xw
+from get_statement import open_in_excel
 
 # def get_sp500_info():
 #     resp = requests.get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
@@ -72,9 +73,6 @@ def get_sp500_info():
     df = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
     df2 = df[0][['Symbol', 'Security', 'GICS Sector']]
     return df2
-
-def open_in_excel(dataframe):
-    xw.view(dataframe)
     
 def format_for_dashdropdown(pddataframe):
     # df_mini = pddataframe[:5]

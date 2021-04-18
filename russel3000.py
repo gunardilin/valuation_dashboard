@@ -6,7 +6,7 @@
 # Created Date: Tuesday, March 2nd 2021, 7:18:39 pm
 # Author: Gunardi Ali
 # -----
-# Last Modified: Thursday, March 4th 2021, 9:20:35 pm
+# Last Modified: Sunday, April 18th 2021, 4:18:58 pm
 # Modified By: Gunardi Ali
 # -----
 # Copyright (c) 2021 Gunardi Ali
@@ -67,6 +67,7 @@ import requests
 from json import loads
 import pandas as pd
 import xlwings as xw
+from get_statement import open_in_excel
 
 def get_russel3000_info():
     url = "https://www.ishares.com/us/products/239714/ishares-russell-3000-etf/1467271812596.ajax?tab=all&fileType=json"
@@ -76,9 +77,6 @@ def get_russel3000_info():
     df2 = df.iloc[:, [0, 1, 2]]
     df2.columns = ['Symbol', 'Security', 'GICS Sector']
     return df2
-
-def open_in_excel(dataframe):
-    xw.view(dataframe)
 
 if __name__ == "__main__":
     open_in_excel(get_russel3000_info())
