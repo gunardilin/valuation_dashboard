@@ -66,7 +66,6 @@
 import requests
 from json import loads
 import pandas as pd
-import xlwings as xw
 from get_statement import open_in_excel
 
 def get_russel3000_info():
