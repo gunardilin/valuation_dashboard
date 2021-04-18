@@ -274,4 +274,5 @@ def generate_decision(inflation, margin, ticker, start):
     return buy_sell_table_written
                         
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(port=8050,host='0.0.0.0')
+    
