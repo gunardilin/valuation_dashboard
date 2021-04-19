@@ -3,3 +3,4 @@ __pycache__/
 Other/
 .vscode/
 Scratchbook.ipynb
+.DS_Store
