@@ -50,22 +50,22 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        options=[
-            {'label': 'Coke', 'value': 'COKE'},
-            {'label': 'Tesla', 'value': 'TSLA'},
-            {'label': 'Apple', 'value': 'AAPL'},
-            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-            ]#, value='AAPL'
+        # options=[
+        #     {'label': 'Coke', 'value': 'COKE'},
+        #     {'label': 'Tesla', 'value': 'TSLA'},
+        #     {'label': 'Apple', 'value': 'AAPL'},
+        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+        #     ]#, value='AAPL'
         
         # For productive deployment use the following options:
-        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-        #                                           get_russel3000_info(),
-        #                                           get_foreigncompanies_info()],
-        #                                           ignore_index=True)) +
-        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+                                                  get_russel3000_info(),
+                                                  get_foreigncompanies_info()],
+                                                  ignore_index=True)) +
+        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -138,7 +138,7 @@ app.layout = html.Div([
         max=100,
         step=5,
         marks={i: '{}%'.format(i) for i in range(0, 100, 5)},
-        value=15),
+        value=10),
     
     html.Br(),
     # html.Hr(),
