@@ -32,7 +32,7 @@ financial_df_table = pd.DataFrame({'Year':[], 'Shareholder Equity':[],
 warning_df_table = pd.DataFrame({'Warning': ['None']})
 
 buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
-                               'Last EPS': [], 'EPS in 5 years': [],
+                               'Last EPS': [], 'EPS in 10 years': [],
                                'Min PE': [], 'FV': [], 'PV': [],
                                'Margin Price': [], 'Current Share Price': [],
                                'Buy/Sell': []})
@@ -50,22 +50,22 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        # options=[
-        #     {'label': 'Coke', 'value': 'COKE'},
-        #     {'label': 'Tesla', 'value': 'TSLA'},
-        #     {'label': 'Apple', 'value': 'AAPL'},
-        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-        #     ]#, value='AAPL'
+        options=[
+            {'label': 'Coke', 'value': 'COKE'},
+            {'label': 'Tesla', 'value': 'TSLA'},
+            {'label': 'Apple', 'value': 'AAPL'},
+            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+            ]#, value='AAPL'
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-                                                  get_russel3000_info(),
-                                                  get_foreigncompanies_info()],
-                                                  ignore_index=True)) +
-        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+        #                                           get_russel3000_info(),
+        #                                           get_foreigncompanies_info()],
+        #                                           ignore_index=True)) +
+        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -130,7 +130,7 @@ app.layout = html.Div([
     
     html.Br(),
     html.Hr(),
-    html.H3('[Assumption] Inflation over 5 years:'),
+    html.H3('[Assumption] Inflation over next 10 years:'),
     
     dcc.Slider(
         id='inflation_slider',
@@ -138,7 +138,7 @@ app.layout = html.Div([
         max=100,
         step=5,
         marks={i: '{}%'.format(i) for i in range(0, 100, 5)},
-        value=10),
+        value=20),
     
     html.Br(),
     # html.Hr(),
@@ -261,14 +261,14 @@ def generate_decision(inflation, margin, ticker, start):
                                           stock_price_df).reset_index()
     buy_sell_table = futureprice_df.rename(columns={
         'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',
-        'lasteps': 'Last EPS', 'futureeps': 'EPS in 5 years', 
+        'lasteps': 'Last EPS', 'futureeps': 'EPS in 10 years', 
         'min_pe': 'Min PE', 'marginprice': 'Margin Price',
         'currentshareprice': 'Current Share Price', 'decision': 'Buy/Sell'
         })
     buy_sell_table[['Annual Growth Rate']] = buy_sell_table[['Annual Growth Rate']].applymap(convert_percent)
-    buy_sell_table[['Last EPS', 'EPS in 5 years', 'Min PE', 'FV', 'PV', 
+    buy_sell_table[['Last EPS', 'EPS in 10 years', 'Min PE', 'FV', 'PV', 
                     'Margin Price', 'Current Share Price']] = np.round(
-                        buy_sell_table[['Last EPS', 'EPS in 5 years', 'Min PE', 
+                        buy_sell_table[['Last EPS', 'EPS in 10 years', 'Min PE', 
                                         'FV', 'PV', 'Margin Price', 
                                         'Current Share Price']], 2)
     buy_sell_table_written = buy_sell_table.to_dict('records')
@@ -276,5 +276,5 @@ def generate_decision(inflation, margin, ticker, start):
     return buy_sell_table_written
                         
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
     
