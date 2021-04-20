@@ -41,7 +41,9 @@ def generate_futureprice (ticker, financialdf, discountrate, marginrate,
     dfprice.set_index('ticker', inplace=True)
     dfprice['min_pe'] = minimum_pe(stockprice_df, financialdf)
     dfprice['FV'] = dfprice['futureeps'] * dfprice['min_pe']
-    dfprice['PV'] = abs(npf.pv(discountrate, n_year, 0, dfprice['FV']))
+    # dfprice['PV'] = abs(npf.pv(discountrate, n_year, 0, dfprice['FV']))
+    dfprice['PV'] = npf.pv(discountrate, n_year, 0, dfprice['FV']) * -1
+    # print(dfprice[['FV', 'PV']])
     dfprice['marginprice'] = np.where((dfprice['futureeps'] > 0), 
                                       dfprice['PV'] * (1-marginrate), 0)
     dfprice['currentshareprice'] = stockpriceserie[-1]
@@ -55,7 +57,7 @@ if __name__ == '__main__':
     from get_statement import get_statement
     from get_stock_price import get_stock_price
     start = datetime.now()
-    ticker = 'aapl'
+    ticker = 'coke'
     discountrate = 0.01
     marginrate = 0.1
     financial_df = calculate_ratio(get_financial_df(get_statement(ticker)))
