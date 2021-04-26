@@ -37,9 +37,9 @@ warning_df_table = pd.DataFrame({'Warning': ['None']})
 # accessed by other callback.
 buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
                                'Last EPS': [], 'EPS in 10 years': [],
-                               'Min PE in last 5 years': [], 'Future Value': [], 'Present Value': [],
-                               'Margin Price': [], 'Current Share Price': [],
-                               'Buy/Sell': []})
+                               'Min PE in last 5 years': [], 'Future Value': [],
+                               'Present Value': [], 'Margin Price': [], 
+                               'Current Share Price': [],'Buy/Sell': []})
 
 stock_price_df = 0
 
@@ -54,22 +54,22 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        options=[
-            {'label': 'Coke', 'value': 'COKE'},
-            {'label': 'Tesla', 'value': 'TSLA'},
-            {'label': 'Apple', 'value': 'AAPL'},
-            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-            ]#, value='AAPL'
+        # options=[
+        #     {'label': 'Coke', 'value': 'COKE'},
+        #     {'label': 'Tesla', 'value': 'TSLA'},
+        #     {'label': 'Apple', 'value': 'AAPL'},
+        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+        #     ]#, value='AAPL'
         
         # For productive deployment use the following options:
-        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-        #                                           get_russel3000_info(),
-        #                                           get_foreigncompanies_info()],
-        #                                           ignore_index=True)) +
-        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+                                                  get_russel3000_info(),
+                                                  get_foreigncompanies_info()],
+                                                  ignore_index=True)) +
+        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -227,8 +227,6 @@ def update_graph(dropdown_properties):
                                         y=stock_price_df.Close, 
                                         name=dropdown_properties)])
     # print('1 finish')
-    # print(stock_price_df[:5])
-    # print(stock_price_df.reset_index().to_dict('records')[:5])
     return figure, stock_price_df.reset_index().to_dict('records')
 
 # For financial_df table and warning_df_table 2
@@ -240,7 +238,6 @@ def update_graph(dropdown_properties):
     prevent_initial_call=True)
 def generate_financial_warning_df_table(stock_ticker, max_rows=10):
     # print('2')
-    # global financial_df_table
     financial_df_table = calculate_ratio(get_financial_df(get_statement
                                                           (stock_ticker)))
     # open_in_excel(financial_df_table)
@@ -282,24 +279,13 @@ def generate_financial_warning_df_table(stock_ticker, max_rows=10):
     prevent_initial_call=True)
 def generate_decision(inflation, margin, ticker, start, stock_price_df_clientside,
                       financial_df_clientside):
-    # print('3')
-    # print('stock_price_df: ')
-    # print(stock_price_df[:5])
-    # print(type(stock_price_df.index[0]))
     
-    # print('Stock price from records: ')
-    # print(pd.DataFrame.from_records(stock_price_df_clientside, index='Date')[:5])
-    # print(type(pd.DataFrame.from_records(stock_price_df_clientside, index='Date').index[0]))
-    
+    # Formating stock_price_df_clientside
     stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index='Date')
     stock_price.index = pd.to_datetime(stock_price.index)
     
-    # print('A')
-    # print(financial_df_table[:5])
-    # print(financial_df_table.index[:5])
-    # print('B')
+    # Formating financial_df_clientside
     financial_df = pd.DataFrame.from_records(financial_df_clientside, index='index')
-    # print(financial_df[:5])
     
     futureprice_df = generate_futureprice(ticker, financial_df, 
                                           inflation/100, margin/100, 
@@ -311,11 +297,15 @@ def generate_decision(inflation, margin, ticker, start, stock_price_df_clientsid
         'currentshareprice': 'Current Share Price', 'decision': 'Buy/Sell',
         'PV': 'Present Value', 'FV': 'Future Value'
         })
-    buy_sell_table[['Annual Growth Rate']] = buy_sell_table[['Annual Growth Rate']].applymap(convert_percent)
-    buy_sell_table[['Last EPS', 'EPS in 10 years', 'Min PE in last 5 years', 'Future Value', 'Present Value', 
+    buy_sell_table[['Annual Growth Rate']] = buy_sell_table[[
+        'Annual Growth Rate']].applymap(convert_percent)
+    buy_sell_table[['Last EPS', 'EPS in 10 years', 'Min PE in last 5 years', 
+                    'Future Value', 'Present Value', 
                     'Margin Price', 'Current Share Price']] = np.round(
-                        buy_sell_table[['Last EPS', 'EPS in 10 years', 'Min PE in last 5 years', 
-                                        'Future Value', 'Present Value', 'Margin Price', 
+                        buy_sell_table[['Last EPS', 'EPS in 10 years', 
+                                        'Min PE in last 5 years', 
+                                        'Future Value', 'Present Value', 
+                                        'Margin Price', 
                                         'Current Share Price']], 2)
     buy_sell_table_written = buy_sell_table.to_dict('records')
     # print('3 finish')
