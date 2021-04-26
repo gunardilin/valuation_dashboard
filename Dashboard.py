@@ -54,22 +54,22 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        # options=[
-        #     {'label': 'Coke', 'value': 'COKE'},
-        #     {'label': 'Tesla', 'value': 'TSLA'},
-        #     {'label': 'Apple', 'value': 'AAPL'},
-        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-        #     ]#, value='AAPL'
+        options=[
+            {'label': 'Coke', 'value': 'COKE'},
+            {'label': 'Tesla', 'value': 'TSLA'},
+            {'label': 'Apple', 'value': 'AAPL'},
+            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+            ]#, value='AAPL'
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-                                                  get_russel3000_info(),
-                                                  get_foreigncompanies_info()],
-                                                  ignore_index=True)) +
-        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+        #                                           get_russel3000_info(),
+        #                                           get_foreigncompanies_info()],
+        #                                           ignore_index=True)) +
+        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -235,8 +235,9 @@ def update_graph(dropdown_properties):
     Output(component_id='warning_df', component_property='data'),
     Output(component_id='financial_df_table_clientside', component_property='data'),
     Input(component_id='my-dropdown', component_property='value'),
+    Input(component_id='stock_price_df_clientside', component_property='data'),
     prevent_initial_call=True)
-def generate_financial_warning_df_table(stock_ticker, max_rows=10):
+def generate_financial_warning_df_table(stock_ticker, start):
     # print('2')
     financial_df_table = calculate_ratio(get_financial_df(get_statement
                                                           (stock_ticker)))
@@ -279,7 +280,7 @@ def generate_financial_warning_df_table(stock_ticker, max_rows=10):
     prevent_initial_call=True)
 def generate_decision(inflation, margin, ticker, start, stock_price_df_clientside,
                       financial_df_clientside):
-    
+    # print('3')
     # Formating stock_price_df_clientside
     stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index='Date')
     stock_price.index = pd.to_datetime(stock_price.index)
