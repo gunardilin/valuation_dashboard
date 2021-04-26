@@ -29,9 +29,12 @@ financial_df_table = pd.DataFrame({'Year':[], 'Shareholder Equity':[],
                                     'Interest Expense':[],
                                     'Interest Coverage Ratio': []})
 
-# warning_df_table is not necessary to be stored clientside.
+# warning_df_table is not necessary to be stored clientside, since no following
+# callback needs input from it.
 warning_df_table = pd.DataFrame({'Warning': ['None']})
 
+# buy_sell_table might not need to be stored clientside, cos it will not be 
+# accessed by other callback.
 buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
                                'Last EPS': [], 'EPS in 10 years': [],
                                'Min PE in last 5 years': [], 'Future Value': [], 'Present Value': [],
@@ -214,27 +217,30 @@ app.layout = html.Div([
 # For stock graph 1
 @app.callback(
     Output(component_id='my-graph', component_property='figure'),
+    Output(component_id='stock_price_df_clientside', component_property='data'),
     Input(component_id='my-dropdown', component_property='value'),
     prevent_initial_call=True)
 def update_graph(dropdown_properties):
     # print('1')
-    global stock_price_df
     stock_price_df = get_stock_price(dropdown_properties)
     figure = go.Figure(data=[go.Scatter(x=stock_price_df.index, 
                                         y=stock_price_df.Close, 
                                         name=dropdown_properties)])
     # print('1 finish')
-    return figure
+    # print(stock_price_df[:5])
+    # print(stock_price_df.reset_index().to_dict('records')[:5])
+    return figure, stock_price_df.reset_index().to_dict('records')
 
 # For financial_df table and warning_df_table 2
 @app.callback(
     Output(component_id='financial_df', component_property='data'),
     Output(component_id='warning_df', component_property='data'),
+    Output(component_id='financial_df_table_clientside', component_property='data'),
     Input(component_id='my-dropdown', component_property='value'),
     prevent_initial_call=True)
 def generate_financial_warning_df_table(stock_ticker, max_rows=10):
     # print('2')
-    global financial_df_table
+    # global financial_df_table
     financial_df_table = calculate_ratio(get_financial_df(get_statement
                                                           (stock_ticker)))
     # open_in_excel(financial_df_table)
@@ -262,7 +268,7 @@ def generate_financial_warning_df_table(stock_ticker, max_rows=10):
     warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
                                     columns=['Warning']).to_dict('records')
     # print('2 finish')
-    return df_written.to_dict('records'), warning_df_table
+    return df_written.to_dict('records'), warning_df_table, financial_df_table.reset_index().to_dict('records')
 
 # For buy_sell_table 3
 @app.callback(
@@ -271,12 +277,33 @@ def generate_financial_warning_df_table(stock_ticker, max_rows=10):
     Input(component_id='margin_slider', component_property='value'),
     Input(component_id='my-dropdown', component_property='value'),
     Input(component_id='financial_df', component_property='data'),
+    State(component_id='stock_price_df_clientside', component_property='data'),
+    State(component_id='financial_df_table_clientside', component_property='data'),
     prevent_initial_call=True)
-def generate_decision(inflation, margin, ticker, start):
+def generate_decision(inflation, margin, ticker, start, stock_price_df_clientside,
+                      financial_df_clientside):
     # print('3')
-    futureprice_df = generate_futureprice(ticker, financial_df_table, 
+    # print('stock_price_df: ')
+    # print(stock_price_df[:5])
+    # print(type(stock_price_df.index[0]))
+    
+    # print('Stock price from records: ')
+    # print(pd.DataFrame.from_records(stock_price_df_clientside, index='Date')[:5])
+    # print(type(pd.DataFrame.from_records(stock_price_df_clientside, index='Date').index[0]))
+    
+    stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index='Date')
+    stock_price.index = pd.to_datetime(stock_price.index)
+    
+    # print('A')
+    # print(financial_df_table[:5])
+    # print(financial_df_table.index[:5])
+    # print('B')
+    financial_df = pd.DataFrame.from_records(financial_df_clientside, index='index')
+    # print(financial_df[:5])
+    
+    futureprice_df = generate_futureprice(ticker, financial_df, 
                                           inflation/100, margin/100, 
-                                          stock_price_df).reset_index()
+                                          stock_price).reset_index()
     buy_sell_table = futureprice_df.rename(columns={
         'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',
         'lasteps': 'Last EPS', 'futureeps': 'EPS in 10 years', 
@@ -295,5 +322,5 @@ def generate_decision(inflation, margin, ticker, start):
     return buy_sell_table_written
                         
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
     

@@ -2,5 +2,5 @@
 __pycache__/
 Other/
 .vscode/
-Scratchbook.ipynb
+*.ipynb
 .DS_Store
