@@ -51,22 +51,22 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        # options=[
-        #     {'label': 'Coke', 'value': 'COKE'},
-        #     {'label': 'Tesla', 'value': 'TSLA'},
-        #     {'label': 'Apple', 'value': 'AAPL'},
-        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-        #     ]#, value='AAPL'
+        options=[
+            {'label': 'Coke', 'value': 'COKE'},
+            {'label': 'Tesla', 'value': 'TSLA'},
+            {'label': 'Apple', 'value': 'AAPL'},
+            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+            ]#, value='AAPL'
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-                                                  get_russel3000_info(),
-                                                  get_foreigncompanies_info()],
-                                                  ignore_index=True)) +
-        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+        #                                           get_russel3000_info(),
+        #                                           get_foreigncompanies_info()],
+        #                                           ignore_index=True)) +
+        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -207,8 +207,8 @@ app.layout = html.Div([
     
     html.Br(),
     html.Hr(),
-    dcc.Store(id='stock_price_df_clientside', data=stock_price_df),
-    dcc.Store(id='financial_df_table_clientside', data=financial_df_table),
+    dcc.Store(id='stock_price_df_clientside', data=[]),
+    dcc.Store(id='financial_df_table_clientside', data=[]),
 ])
 
 # For stock graph 1
@@ -274,7 +274,6 @@ def generate_financial_warning_df_table(stock_ticker, max_rows=10):
     prevent_initial_call=True)
 def generate_decision(inflation, margin, ticker, start):
     # print('3')
-    global buy_sell_table
     futureprice_df = generate_futureprice(ticker, financial_df_table, 
                                           inflation/100, margin/100, 
                                           stock_price_df).reset_index()
@@ -296,5 +295,5 @@ def generate_decision(inflation, margin, ticker, start):
     return buy_sell_table_written
                         
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
     
