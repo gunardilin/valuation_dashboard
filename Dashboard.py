@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_table
 # from datetime import datetime as dt
 
@@ -29,6 +29,7 @@ financial_df_table = pd.DataFrame({'Year':[], 'Shareholder Equity':[],
                                     'Interest Expense':[],
                                     'Interest Coverage Ratio': []})
 
+# warning_df_table is not necessary to be stored clientside.
 warning_df_table = pd.DataFrame({'Warning': ['None']})
 
 buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
@@ -205,7 +206,9 @@ app.layout = html.Div([
         ),
     
     html.Br(),
-    html.Hr()
+    html.Hr(),
+    dcc.Store(id='stock_price_df_clientside', data=stock_price_df),
+    dcc.Store(id='financial_df_table_clientside', data=financial_df_table),
 ])
 
 # For stock graph 1
