@@ -21,7 +21,7 @@ def minimum_pe (stockpriceserie, financialdf):
     priceearning_byyear = priceearning_byyear.merge(price.to_frame(name='price'), 
                                                     left_index=True, right_index=True)
     priceearning_byyear['pe'] = priceearning_byyear['price']/priceearning_byyear['eps']
-    print('Min PE:', round(priceearning_byyear.pe.min(), 2))
+    # print('Min PE:', round(priceearning_byyear.pe.min(), 2))
     return round(priceearning_byyear.pe.min(), 2)
 
 def generate_futureprice (ticker, financialdf, discountrate, marginrate,

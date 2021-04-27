@@ -54,22 +54,22 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        options=[
-            {'label': 'Coke', 'value': 'COKE'},
-            {'label': 'Tesla', 'value': 'TSLA'},
-            {'label': 'Apple', 'value': 'AAPL'},
-            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-            ]#, value='AAPL'
+        # options=[
+        #     {'label': 'Coke', 'value': 'COKE'},
+        #     {'label': 'Tesla', 'value': 'TSLA'},
+        #     {'label': 'Apple', 'value': 'AAPL'},
+        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+        #     ]#, value='AAPL'
         
         # For productive deployment use the following options:
-        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-        #                                           get_russel3000_info(),
-        #                                           get_foreigncompanies_info()],
-        #                                           ignore_index=True)) +
-        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+                                                  get_russel3000_info(),
+                                                  get_foreigncompanies_info()],
+                                                  ignore_index=True)) +
+        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -221,12 +221,12 @@ app.layout = html.Div([
     Input(component_id='my-dropdown', component_property='value'),
     prevent_initial_call=True)
 def update_graph(dropdown_properties):
-    print('1')
+    # print('1')
     stock_price_df = get_stock_price(dropdown_properties)
     figure = go.Figure(data=[go.Scatter(x=stock_price_df.index, 
                                         y=stock_price_df.Close, 
                                         name=dropdown_properties)])
-    print('1 finish')
+    # print('1 finish')
     return figure, stock_price_df.reset_index().to_dict('records')
 
 # For financial_df table and warning_df_table 2
@@ -235,10 +235,10 @@ def update_graph(dropdown_properties):
     Output(component_id='warning_df', component_property='data'),
     Output(component_id='financial_df_table_clientside', component_property='data'),
     Input(component_id='my-dropdown', component_property='value'),
-    Input(component_id='stock_price_df_clientside', component_property='data'),
+    # Input(component_id='stock_price_df_clientside', component_property='data'),
     prevent_initial_call=True)
-def generate_financial_warning_df_table(stock_ticker, start):
-    print('2')
+def generate_financial_warning_df_table(stock_ticker):
+    # print('2')
     financial_df_table = calculate_ratio(get_financial_df(get_statement
                                                           (stock_ticker)))
     # open_in_excel(financial_df_table)
@@ -265,7 +265,7 @@ def generate_financial_warning_df_table(stock_ticker, start):
     # Generate Warning_df_table
     warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
                                     columns=['Warning']).to_dict('records')
-    print('2 finish')
+    # print('2 finish')
     return df_written.to_dict('records'), warning_df_table, financial_df_table.reset_index().to_dict('records')
 
 # For buy_sell_table 3
@@ -274,23 +274,24 @@ def generate_financial_warning_df_table(stock_ticker, start):
     Input(component_id='inflation_slider', component_property='value'),
     Input(component_id='margin_slider', component_property='value'),
     Input(component_id='my-dropdown', component_property='value'),
-    Input(component_id='financial_df', component_property='data'),
-    State(component_id='stock_price_df_clientside', component_property='data'),
+    Input(component_id='financial_df', component_property='data'), # Start signal no. 1
+    Input(component_id='stock_price_df_clientside', component_property='data'), # Also necessary as start signal no. 2
     State(component_id='financial_df_table_clientside', component_property='data'),
     prevent_initial_call=True)
-def generate_decision(inflation, margin, ticker, start, stock_price_df_clientside,
+def generate_decision(inflation, margin, ticker, start1, stock_price_df_clientside,
                       financial_df_clientside):
-    print('3')
+    # print('3')
     # Formating stock_price_df_clientside
     stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index='Date')
     stock_price.index = pd.to_datetime(stock_price.index)
-    print('*** Ticker:', ticker)
-    print('*** Inflation in 10 Y:', inflation)
-    print('*** Margin of Safety:', margin)
-    print('*** Stock price:', stock_price.tail())
+    # print('*** Ticker:', ticker)
+    # print('*** Inflation in 10 Y:', inflation)
+    # print('*** Margin of Safety:', margin)
+    # print('*** Stock price:', stock_price.tail())
+    
     # Formating financial_df_clientside
     financial_df = pd.DataFrame.from_records(financial_df_clientside, index='index')
-    print('*** Financial DF:\n', financial_df.tail())
+    # print('*** Financial DF:\n', financial_df.tail())
     futureprice_df = generate_futureprice(ticker, financial_df, 
                                           inflation/100, margin/100, 
                                           stock_price).reset_index()
@@ -312,7 +313,7 @@ def generate_decision(inflation, margin, ticker, start, stock_price_df_clientsid
                                         'Margin Price', 
                                         'Current Share Price']], 2)
     buy_sell_table_written = buy_sell_table.to_dict('records')
-    print('3 finish')
+    # print('3 finish')
     return buy_sell_table_written
                         
 if __name__ == '__main__':
