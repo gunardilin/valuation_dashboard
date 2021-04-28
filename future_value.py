@@ -20,6 +20,16 @@ def minimum_pe (stockpriceserie, financialdf):
     priceearning_byyear.index = priceearning_byyear.index.astype(int)
     priceearning_byyear = priceearning_byyear.merge(price.to_frame(name='price'), 
                                                     left_index=True, right_index=True)
+    
+    # In case the select company just IPOed on current year x, no stock price 
+    # in x-1 is available. After merging operation, priceearning_byyear will be 
+    # empty, eventhough eps for x-1 is available. Therefore minimum_pe should 
+    # use the last available eps and current share price to generate minimum_pe.
+    if len(priceearning_byyear) == 0:
+        priceearning_byyear= pd.concat([priceearning_byyear, 
+                                        price.to_frame(name='price')])
+        priceearning_byyear.eps.iloc[-1] = financialdf.eps.iloc[-1]
+        
     priceearning_byyear['pe'] = priceearning_byyear['price']/priceearning_byyear['eps']
     # print('Min PE:', round(priceearning_byyear.pe.min(), 2))
     return round(priceearning_byyear.pe.min(), 2)
@@ -58,12 +68,14 @@ if __name__ == '__main__':
     from get_statement import get_statement
     from get_stock_price import get_stock_price
     start = datetime.now()
-    ticker = 'coke'
+    ticker = 'cpng'
     discountrate = 0.01
     marginrate = 0.1
     financial_df = calculate_ratio(get_financial_df(get_statement(ticker)))
     stockprice_df = get_stock_price(ticker)
 
-    open_in_excel(generate_futureprice(ticker, financial_df, discountrate, 
+    print(generate_futureprice(ticker, financial_df, discountrate, 
                                        marginrate, stockprice_df))
-    #print(datetime.now() - start)
+    # open_in_excel(generate_futureprice(ticker, financial_df, discountrate, 
+    #                                    marginrate, stockprice_df))
+    print(datetime.now() - start)
