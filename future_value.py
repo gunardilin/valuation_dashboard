@@ -44,7 +44,9 @@ def generate_futureprice (ticker, financialdf, discountrate, marginrate,
                                     'futureeps'])
     pd.options.display.float_format = '{:20,.2f}'.format
     try:
-        annualgrowthrate = npf.rate(5, 0, -1*financialdf.eps.iloc[0], lasteps)
+        n_year = len(financialdf) # Year duration in financialdf
+        annualgrowthrate = npf.rate(n_year, 0, -1*financialdf.eps.iloc[0], 
+                                    lasteps)
         futureeps = abs(npf.fv(annualgrowthrate, n_year, 0, lasteps))
         dfprice.loc[0] = [ticker, annualgrowthrate, lasteps, futureeps]
     except:
