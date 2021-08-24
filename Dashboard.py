@@ -37,7 +37,7 @@ warning_df_table = pd.DataFrame({'Warning': ['None']})
 # accessed by other callback.
 buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
                                'Last EPS': [], 'EPS in 10 years': [],
-                               'Min PE in last 5 years': [], 'Future Value': [],
+                               'PE': [], 'Future Value': [],
                                'Present Value': [], 'Margin Price': [], 
                                'Current Share Price': [],'Buy/Sell': []})
 
@@ -54,22 +54,22 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        # options=[
-        #     {'label': 'Coke', 'value': 'COKE'},
-        #     {'label': 'Tesla', 'value': 'TSLA'},
-        #     {'label': 'Apple', 'value': 'AAPL'},
-        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-        #     ]#, value='AAPL'
+        options=[
+            {'label': 'Coke', 'value': 'COKE'},
+            {'label': 'Tesla', 'value': 'TSLA'},
+            {'label': 'Apple', 'value': 'AAPL'},
+            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+            ]#, value='AAPL',
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-                                                  get_russel3000_info(),
-                                                  get_foreigncompanies_info()],
-                                                  ignore_index=True)) +
-        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+    #     options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+    #                                               get_russel3000_info(),
+    #                                               get_foreigncompanies_info()],
+    #                                               ignore_index=True)) +
+    #     [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+    #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+    #     {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -109,9 +109,12 @@ app.layout = html.Div([
                         },
                 'backgroundColor': '#FF4136',
                 'color': 'white'
-                },
-            
-            ]
+                },   
+            ],
+        # tooltip_header={
+        #     i: i for i in financial_df_table.columns
+        #     'EPS': 'Earning per Share'
+        #     }, 
         ),
     
     html.Br(),
@@ -190,22 +193,39 @@ app.layout = html.Div([
                 },
             {
                 'if': {
-                    'filter_query': '{Min PE in last 5 years} >= 25',
-                    'column_id': 'Min PE in last 5 years'
+                    'filter_query': '{PE} >= 25',
+                    'column_id': 'PE'
                         },
                 'backgroundColor': '#ffbf00',
                 'color': 'black'
                 },
             {
                 'if': {
-                    'filter_query': '{Min PE in last 5 years} <= 0',
-                    'column_id': 'Min PE in last 5 years'
+                    'filter_query': '{PE} <= 0',
+                    'column_id': 'PE'
                         },
                 'backgroundColor': '#FF4136',
                 'color': 'white'
                 },
             
-            ]
+            ],
+            tooltip_data=[
+                {
+                    'PE': 'Minimum PE'
+                },
+                {
+                    'PE': 'Maximum PE'
+                },
+                {
+                    'PE': 'Mean PE'
+                },
+            ],
+            tooltip_header={
+                # i: i for i in buy_sell_table.columns
+               'PE': 'Price Earning Ratio'
+                },
+            # tooltip_delay=0,
+            # tooltip_duration=2
         ),
     
     html.Br(),
@@ -295,20 +315,21 @@ def generate_decision(inflation, margin, ticker, start1, stock_price_df_clientsi
     futureprice_df = generate_futureprice(ticker, financial_df, 
                                           inflation/100, margin/100, 
                                           stock_price).reset_index()
+    # print(futureprice_df)
     buy_sell_table = futureprice_df.rename(columns={
         'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',
         'lasteps': 'Last EPS', 'futureeps': 'EPS in 10 years', 
-        'min_pe': 'Min PE in last 5 years', 'marginprice': 'Margin Price',
+        'pe': 'PE', 'marginprice': 'Margin Price',
         'currentshareprice': 'Current Share Price', 'decision': 'Buy/Sell',
         'PV': 'Present Value', 'FV': 'Future Value'
         })
     buy_sell_table[['Annual Growth Rate']] = buy_sell_table[[
         'Annual Growth Rate']].applymap(convert_percent)
-    buy_sell_table[['Last EPS', 'EPS in 10 years', 'Min PE in last 5 years', 
+    buy_sell_table[['Last EPS', 'EPS in 10 years', 'PE', 
                     'Future Value', 'Present Value', 
                     'Margin Price', 'Current Share Price']] = np.round(
                         buy_sell_table[['Last EPS', 'EPS in 10 years', 
-                                        'Min PE in last 5 years', 
+                                        'PE', 
                                         'Future Value', 'Present Value', 
                                         'Margin Price', 
                                         'Current Share Price']], 2)
