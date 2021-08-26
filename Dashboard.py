@@ -253,6 +253,14 @@ def update_graph(tickers):
     return figure, stock_price_df.reset_index().to_dict('records')
 
 # For financial_df table and warning_df_table 2
+def company_ratio (ticker):
+    df_ratio = calculate_ratio(get_financial_df(get_statement(ticker)))
+    df_warning = pd.DataFrame(warning_sign(df_ratio), 
+                                columns=['Warning'])
+    df_ratio['Ticker'] = ticker
+    df_warning['Company'] = ticker
+    return df_ratio, df_warning
+
 @app.callback(
     Output(component_id='financial_df', component_property='data'),
     Output(component_id='warning_df', component_property='data'),
@@ -263,12 +271,20 @@ def update_graph(tickers):
 def generate_financial_warning_df_table(stock_tickers):
     # print('2')
     stock_ticker = stock_tickers[0]
-    financial_df_table = calculate_ratio(get_financial_df(get_statement
-                                                          (stock_ticker)))
+    # financial_df_table = calculate_ratio(get_financial_df(get_statement
+    #                                                       (stock_ticker)))
+    # company_ratio = lambda ticker: calculate_ratio(get_financial_df(
+    #     get_statement(ticker)))
+    financial_df_table = pd.DataFrame({})
+    warning_df_table = pd.DataFrame({})
+    for i in stock_tickers:
+        new_content = company_ratio(i)
+        financial_df_table = pd.concat([financial_df_table, new_content[0]])
+        warning_df_table = pd.concat([warning_df_table, new_content[1]])
+    
     # open_in_excel(financial_df_table)
     # Formating the table output
     df_written = financial_df_table.reset_index()
-    df_written['Ticker'] = stock_ticker
     
     df_written[['shareholderequity', 'longtermdebt', 'netincome', 
                 'interestexpense', 'ebitda']] = df_written[
@@ -288,12 +304,11 @@ def generate_financial_warning_df_table(stock_tickers):
             'roe': 'ROE', 'interestcoverageratio': 'Interest Coverage Ratio'})
     
     # Generate Warning_df_table
-    warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
-                                    columns=['Warning'])
-    warning_df_table['Company'] = stock_ticker
-    warning_df_table = warning_df_table
+    # warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
+    #                                 columns=['Warning'])
+    # warning_df_table['Company'] = stock_ticker
     # print('2 finish')
-    return df_written.to_dict('records'), warning_df_table.to_dict('records'),
+    return df_written.to_dict('records'), warning_df_table.to_dict('records'), \
         financial_df_table.reset_index().to_dict('records')
 
 # For buy_sell_table 3
