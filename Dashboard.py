@@ -254,7 +254,9 @@ def update_graph(tickers):
 
 # For financial_df table and warning_df_table 2
 def company_ratio (ticker):
+    # Generate Critical-Variable_df
     df_ratio = calculate_ratio(get_financial_df(get_statement(ticker)))
+    # Generate Warning_df
     df_warning = pd.DataFrame(warning_sign(df_ratio), 
                                 columns=['Warning'])
     df_ratio['Ticker'] = ticker
