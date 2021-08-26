@@ -52,7 +52,7 @@ def open_in_excel(dataframe):
         xw.view(dataframe)
 
 if __name__ == "__main__":
-    tables_list = get_statement("baba")
+    tables_list = get_statement("baba")[0]
     for i in tables_list:
         open_in_excel(i)
         

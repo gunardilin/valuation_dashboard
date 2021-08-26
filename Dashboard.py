@@ -2,7 +2,7 @@
 
 # from pandas_datareader import data
 import plotly.graph_objects as go
-
+import plotly.express as px
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -12,7 +12,7 @@ import dash_table
 
 import pandas as pd
 import numpy as np
-from get_stock_price import get_stock_price
+from get_stock_price import get_stocks_price
 from sp500 import get_sp500_info, format_for_dashdropdown
 from russel3000 import get_russel3000_info
 from foreigncompanies import get_foreigncompanies_info
@@ -22,7 +22,8 @@ from human_readable_format import readable_format, convert_percent
 from warning_sign import warning_sign
 from future_value import generate_futureprice
 
-financial_df_table = pd.DataFrame({'Year':[], 'Shareholder Equity':[], 
+financial_df_table = pd.DataFrame({'Ticker':[], 'Year':[], 
+                                    'Shareholder Equity':[], 
                                     'Long-Term Debt':[], 'Net Income': [],
                                     'EPS':[], 'EPS-Growth':[], 
                                     'EBITDA':[], 'ROA':[], 'ROE':[],
@@ -31,7 +32,7 @@ financial_df_table = pd.DataFrame({'Year':[], 'Shareholder Equity':[],
 
 # warning_df_table is not necessary to be stored clientside, since no following
 # callback needs input from it.
-warning_df_table = pd.DataFrame({'Warning': ['None']})
+warning_df_table = pd.DataFrame({'Company': ['None'], 'Warning': ['None']})
 
 # buy_sell_table might not need to be stored clientside, cos it will not be 
 # accessed by other callback.
@@ -54,22 +55,24 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        # options=[
-        #     {'label': 'Coke', 'value': 'COKE'},
-        #     {'label': 'Tesla', 'value': 'TSLA'},
-        #     {'label': 'Apple', 'value': 'AAPL'},
-        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-        #     ]#, value='AAPL',
+        options=[
+            {'label': 'Coke', 'value': 'COKE'},
+            {'label': 'Tesla', 'value': 'TSLA'},
+            {'label': 'Apple', 'value': 'AAPL'},
+            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+            ],
+            multi = True,
+        #     value='AAPL',
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-                                                  get_russel3000_info(),
-                                                  get_foreigncompanies_info()],
-                                                  ignore_index=True)) +
-        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+        #                                           get_russel3000_info(),
+        #                                           get_foreigncompanies_info()],
+        #                                           ignore_index=True)) +
+        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -240,12 +243,12 @@ app.layout = html.Div([
     Output(component_id='stock_price_df_clientside', component_property='data'),
     Input(component_id='my-dropdown', component_property='value'),
     prevent_initial_call=True)
-def update_graph(dropdown_properties):
+def update_graph(tickers):
     # print('1')
-    stock_price_df = get_stock_price(dropdown_properties)
-    figure = go.Figure(data=[go.Scatter(x=stock_price_df.index, 
-                                        y=stock_price_df.Close, 
-                                        name=dropdown_properties)])
+    stock_price_df = get_stocks_price(tickers)
+    df_normalized = stock_price_df.div(stock_price_df.iloc[0]).reset_index()
+    figure = px.line(df_normalized, x="Date", y=tickers, hover_data={
+        "Date": "| %d %B %Y"}, title='Stocks Price')
     # print('1 finish')
     return figure, stock_price_df.reset_index().to_dict('records')
 
@@ -257,13 +260,15 @@ def update_graph(dropdown_properties):
     Input(component_id='my-dropdown', component_property='value'),
     # Input(component_id='stock_price_df_clientside', component_property='data'),
     prevent_initial_call=True)
-def generate_financial_warning_df_table(stock_ticker):
+def generate_financial_warning_df_table(stock_tickers):
     # print('2')
+    stock_ticker = stock_tickers[0]
     financial_df_table = calculate_ratio(get_financial_df(get_statement
                                                           (stock_ticker)))
     # open_in_excel(financial_df_table)
     # Formating the table output
     df_written = financial_df_table.reset_index()
+    df_written['Ticker'] = stock_ticker
     
     df_written[['shareholderequity', 'longtermdebt', 'netincome', 
                 'interestexpense', 'ebitda']] = df_written[
@@ -284,9 +289,12 @@ def generate_financial_warning_df_table(stock_ticker):
     
     # Generate Warning_df_table
     warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
-                                    columns=['Warning']).to_dict('records')
+                                    columns=['Warning'])
+    warning_df_table['Company'] = stock_ticker
+    warning_df_table = warning_df_table
     # print('2 finish')
-    return df_written.to_dict('records'), warning_df_table, financial_df_table.reset_index().to_dict('records')
+    return df_written.to_dict('records'), warning_df_table.to_dict('records'),
+        financial_df_table.reset_index().to_dict('records')
 
 # For buy_sell_table 3
 @app.callback(
@@ -298,12 +306,13 @@ def generate_financial_warning_df_table(stock_ticker):
     Input(component_id='stock_price_df_clientside', component_property='data'), # Also necessary as start signal no. 2
     State(component_id='financial_df_table_clientside', component_property='data'),
     prevent_initial_call=True)
-def generate_decision(inflation, margin, ticker, start1, stock_price_df_clientside,
+def generate_decision(inflation, margin, tickers, start1, stock_price_df_clientside,
                       financial_df_clientside):
     # print('3')
     # Formating stock_price_df_clientside
     stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index='Date')
     stock_price.index = pd.to_datetime(stock_price.index)
+    ticker = tickers[0]
     # print('*** Ticker:', ticker)
     # print('*** Inflation in 10 Y:', inflation)
     # print('*** Margin of Safety:', margin)

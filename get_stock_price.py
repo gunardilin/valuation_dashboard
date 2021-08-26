@@ -6,7 +6,7 @@
 # Created Date: Friday, March 5th 2021, 3:24:22 pm
 # Author: Gunardi Ali
 # -----
-# Last Modified: Friday, March 5th 2021, 3:35:16 pm
+# Last Modified: Thursday, August 26th 2021, 7:34:26 pm
 # Modified By: Gunardi Ali
 # -----
 # Copyright (c) 2021 Gunardi Ali
@@ -39,6 +39,12 @@ def get_stock_price(ticker):
     stockprice_df = data.DataReader(name=ticker, data_source="yahoo", start=today -
                     dt.timedelta(days=5*365), end=today)
     return stockprice_df
+
+def get_stocks_price(tickers: list):
+    today = dt.datetime.now()
+    stocksprice_df = data.DataReader(name=tickers, data_source="yahoo", start=today -
+                    dt.timedelta(days=5*365), end=today).Close
+    return stocksprice_df
 
 def format_stockprice_df(stockprice_df):
     # print(stockprice_df[:5])
