@@ -37,8 +37,7 @@ from get_statement import open_in_excel
 def min_max_avg_pe (stockpriceserie, financialdf):
     stockpricedf = pd.DataFrame(stockpriceserie)
     stockpricedf['year'] = stockpricedf.index.year
-    # price = stockpricedf.groupby('year').tail(1).set_index('year')['Close']
-    ###########################################################
+
     price = stockpricedf.groupby('year').tail(1).set_index('year').iloc[:,0]
     priceearning_byyear = pd.DataFrame()
     financialdf.index.rename('year', inplace=True)
@@ -64,12 +63,9 @@ def min_max_avg_pe (stockpriceserie, financialdf):
         2)]
 
 def generate_futureprice (ticker, financialdf, discountrate, marginrate,
-                          stockprice_df):
+                          stockpriceserie):
     n_year = 10 # Future year, whose EPS to be calculated.
     lasteps = financialdf.eps.iloc[-1]
-    # stockpriceserie = stockprice_df['Close']
-    ###########################################
-    stockpriceserie = stockprice_df.iloc[:,0]
     
     dfprice = pd.DataFrame(columns=['ticker', 'annualgrowthrate', 'lasteps',
                                     'futureeps'])
@@ -85,7 +81,7 @@ def generate_futureprice (ticker, financialdf, discountrate, marginrate,
     except:
         print('EPS does not exist')
     dfprice.set_index('ticker', inplace=True)
-    pe_ratios = min_max_avg_pe(stockprice_df, financialdf)
+    pe_ratios = min_max_avg_pe(stockpriceserie, financialdf)
     # dfprice['min_pe'] = pe_ratios[0]
     dfprice['pe'] = pe_ratios
     dfprice['FV'] = dfprice['futureeps'] * dfprice['pe']
@@ -106,7 +102,7 @@ if __name__ == '__main__':
     from get_statement import get_statement
     from get_stock_price import get_stock_price
     start = datetime.now()
-    ticker = ['aapl']
+    ticker = 'aapl'
     discountrate = 0.1
     marginrate = 0.1
     financial_df = calculate_ratio(get_financial_df(get_statement(ticker)))

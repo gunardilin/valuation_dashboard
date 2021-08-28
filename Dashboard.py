@@ -329,7 +329,6 @@ def generate_decision(inflation, margin, tickers, start1, stock_price_df_clients
     # Formating stock_price_df_clientside
     stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index='Date')
     stock_price.index = pd.to_datetime(stock_price.index)
-    ticker = tickers[0]
     # print('*** Ticker:', ticker)
     # print('*** Inflation in 10 Y:', inflation)
     # print('*** Margin of Safety:', margin)
@@ -338,9 +337,16 @@ def generate_decision(inflation, margin, tickers, start1, stock_price_df_clients
     # Formating financial_df_clientside
     financial_df = pd.DataFrame.from_records(financial_df_clientside, index='index')
     # print('*** Financial DF:\n', financial_df.tail())
-    futureprice_df = generate_futureprice(ticker, financial_df, 
-                                          inflation/100, margin/100, 
-                                          stock_price).reset_index()
+    futureprice_df = pd.DataFrame({})
+    for ticker in tickers:
+        # print(financial_df[financial_df['Ticker'] == ticker])
+        futureprice_df = pd.concat([futureprice_df, generate_futureprice(ticker,
+                                    financial_df[financial_df['Ticker'] == ticker], 
+                                    inflation/100, margin/100, 
+                                    stock_price[ticker])])
+        # print(futureprice_df)
+        # print(futureprice_df.pe)
+    futureprice_df.reset_index(inplace=True)
     # print(futureprice_df)
     buy_sell_table = futureprice_df.rename(columns={
         'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',

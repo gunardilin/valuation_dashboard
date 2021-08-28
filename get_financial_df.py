@@ -33,5 +33,6 @@ def calculate_ratio(financial_df):
 
 if __name__ == "__main__":
     from get_statement import get_statement, open_in_excel
+    # open_in_excel(get_financial_df(get_statement('coke')))
+    # print(calculate_ratio(get_financial_df(get_statement('coke'))))
     open_in_excel(calculate_ratio(get_financial_df(get_statement('coke'))))
-    # print(get_financial_df(get_statement('aapl')))
