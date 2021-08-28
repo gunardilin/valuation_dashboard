@@ -22,7 +22,7 @@ from human_readable_format import readable_format, convert_percent
 from warning_sign import warning_sign
 from future_value import generate_futureprice
 
-financial_df_table = pd.DataFrame({'Ticker':[], 'Year':[], 
+financial_df_table = pd.DataFrame({'Company':[], 'Year':[], 
                                     'Shareholder Equity':[], 
                                     'Long-Term Debt':[], 'Net Income': [],
                                     'EPS':[], 'EPS-Growth':[], 
@@ -246,15 +246,18 @@ app.layout = html.Div([
     Input(component_id='my-dropdown', component_property='value'),
     prevent_initial_call=True)
 def update_graph(tickers):
-    # print('1')
-    stock_price_df = get_stocks_price(tickers)
-    df_normalized = stock_price_df.div(stock_price_df.iloc[0]).reset_index()
-    figure = px.line(df_normalized, x="Date", y=tickers, hover_data={
-        "Date": "| %d %B %Y"}, title='Stocks Price',
-        )
-    figure.update_layout(hovermode='x')
-    # print('1 finish')
-    return figure, stock_price_df.reset_index().to_dict('records')
+    if len(tickers) != 0:
+        # print('1')
+        stock_price_df = get_stocks_price(tickers)
+        df_normalized = stock_price_df.div(stock_price_df.iloc[0]).reset_index()
+        figure = px.line(df_normalized, x="Date", y=tickers, hover_data={
+            "Date": "| %d %B %Y"}, title='Stocks Price',
+            )
+        figure.update_layout(hovermode='x')
+        # print('1 finish')
+        return figure, stock_price_df.reset_index().to_dict('records')
+    else:
+        return [], []
 
 # For financial_df table and warning_df_table 2
 def company_ratio (ticker):
@@ -263,7 +266,7 @@ def company_ratio (ticker):
     # Generate Warning_df
     df_warning = pd.DataFrame(warning_sign(df_ratio), 
                                 columns=['Warning'])
-    df_ratio['Ticker'] = ticker
+    df_ratio['Company'] = ticker
     df_warning['Company'] = ticker
     return df_ratio, df_warning
 
@@ -275,47 +278,49 @@ def company_ratio (ticker):
     # Input(component_id='stock_price_df_clientside', component_property='data'),
     prevent_initial_call=True)
 def generate_financial_warning_df_table(stock_tickers):
-    # print('2')
-    stock_ticker = stock_tickers[0]
-    # financial_df_table = calculate_ratio(get_financial_df(get_statement
-    #                                                       (stock_ticker)))
-    # company_ratio = lambda ticker: calculate_ratio(get_financial_df(
-    #     get_statement(ticker)))
-    financial_df_table = pd.DataFrame({})
-    warning_df_table = pd.DataFrame({})
-    for i in stock_tickers:
-        new_content = company_ratio(i)
-        financial_df_table = pd.concat([financial_df_table, new_content[0]])
-        warning_df_table = pd.concat([warning_df_table, new_content[1]])
-    
-    # open_in_excel(financial_df_table)
-    # Formating the table output
-    df_written = financial_df_table.reset_index()
-    
-    df_written[['shareholderequity', 'longtermdebt', 'netincome', 
-                'interestexpense', 'ebitda']] = df_written[
-                    ['shareholderequity', 'longtermdebt', 'netincome', 
-                      'interestexpense', 'ebitda']].applymap(readable_format)            
-                    
-    df_written[['epsgrowth', 'roa', 'roe']] = df_written[
-        ['epsgrowth', 'roa', 'roe']].applymap(convert_percent)
-    df_written[['eps', 'interestcoverageratio']] = np.round(
-        df_written[['eps', 'interestcoverageratio']], 2)
-    
-    df_written = df_written.rename(columns={
-        'index':'Year', 'shareholderequity': 'Shareholder Equity', 
-        'longtermdebt': 'Long-Term Debt', 'eps': 'EPS', 'epsgrowth': 
-            'EPS-Growth', 'netincome': 'Net Income', 'roa': 'ROA', 
-            'interestexpense': 'Interest Expense', 'ebitda': 'EBITDA',
-            'roe': 'ROE', 'interestcoverageratio': 'Interest Coverage Ratio'})
-    
-    # Generate Warning_df_table
-    # warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
-    #                                 columns=['Warning'])
-    # warning_df_table['Company'] = stock_ticker
-    # print('2 finish')
-    return df_written.to_dict('records'), warning_df_table.to_dict('records'), \
-        financial_df_table.reset_index().to_dict('records')
+    if len(stock_tickers) != 0:
+        # print('2')
+        # financial_df_table = calculate_ratio(get_financial_df(get_statement
+        #                                                       (stock_ticker)))
+        # company_ratio = lambda ticker: calculate_ratio(get_financial_df(
+        #     get_statement(ticker)))
+        financial_df_table = pd.DataFrame({})
+        warning_df_table = pd.DataFrame({})
+        for i in stock_tickers:
+            new_content = company_ratio(i)
+            financial_df_table = pd.concat([financial_df_table, new_content[0]])
+            warning_df_table = pd.concat([warning_df_table, new_content[1]])
+        
+        # open_in_excel(financial_df_table)
+        # Formating the table output
+        df_written = financial_df_table.reset_index()
+        
+        df_written[['shareholderequity', 'longtermdebt', 'netincome', 
+                    'interestexpense', 'ebitda']] = df_written[
+                        ['shareholderequity', 'longtermdebt', 'netincome', 
+                        'interestexpense', 'ebitda']].applymap(readable_format)            
+                        
+        df_written[['epsgrowth', 'roa', 'roe']] = df_written[
+            ['epsgrowth', 'roa', 'roe']].applymap(convert_percent)
+        df_written[['eps', 'interestcoverageratio']] = np.round(
+            df_written[['eps', 'interestcoverageratio']], 2)
+        
+        df_written = df_written.rename(columns={
+            'index':'Year', 'shareholderequity': 'Shareholder Equity', 
+            'longtermdebt': 'Long-Term Debt', 'eps': 'EPS', 'epsgrowth': 
+                'EPS-Growth', 'netincome': 'Net Income', 'roa': 'ROA', 
+                'interestexpense': 'Interest Expense', 'ebitda': 'EBITDA',
+                'roe': 'ROE', 'interestcoverageratio': 'Interest Coverage Ratio'})
+        
+        # Generate Warning_df_table
+        # warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
+        #                                 columns=['Warning'])
+        # warning_df_table['Company'] = stock_ticker
+        # print('2 finish')
+        return df_written.to_dict('records'), warning_df_table.to_dict('records'), \
+            financial_df_table.reset_index().to_dict('records')
+    else:
+        return [], [], []
 
 # For buy_sell_table 3
 @app.callback(
@@ -329,49 +334,55 @@ def generate_financial_warning_df_table(stock_tickers):
     prevent_initial_call=True)
 def generate_decision(inflation, margin, tickers, start1, stock_price_df_clientside,
                       financial_df_clientside):
-    # print('3')
-    # Formating stock_price_df_clientside
-    stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index='Date')
-    stock_price.index = pd.to_datetime(stock_price.index)
-    # print('*** Ticker:', ticker)
-    # print('*** Inflation in 10 Y:', inflation)
-    # print('*** Margin of Safety:', margin)
-    # print('*** Stock price:', stock_price.tail())
-    
-    # Formating financial_df_clientside
-    financial_df = pd.DataFrame.from_records(financial_df_clientside, index='index')
-    # print('*** Financial DF:\n', financial_df.tail())
-    futureprice_df = pd.DataFrame({})
-    for ticker in tickers:
-        # print(financial_df[financial_df['Ticker'] == ticker])
-        futureprice_df = pd.concat([futureprice_df, generate_futureprice(ticker,
-                                    financial_df[financial_df['Ticker'] == ticker], 
-                                    inflation/100, margin/100, 
-                                    stock_price[ticker])])
+    if len(tickers) != 0:
+        # print('3')
+        # Formating stock_price_df_clientside
+        stock_price = pd.DataFrame.from_records(stock_price_df_clientside, \
+            index='Date')
+        stock_price.index = pd.to_datetime(stock_price.index)
+        # print('*** Ticker:', ticker)
+        # print('*** Inflation in 10 Y:', inflation)
+        # print('*** Margin of Safety:', margin)
+        # print('*** Stock price:', stock_price.tail())
+        
+        # Formating financial_df_clientside
+        financial_df = pd.DataFrame.from_records(financial_df_clientside, \
+            index='index')
+        # print('*** Financial DF:\n', financial_df.tail())
+        futureprice_df = pd.DataFrame({})
+        for ticker in tickers:
+            # print(financial_df[financial_df['Ticker'] == ticker])
+            futureprice_df = pd.concat([futureprice_df, generate_futureprice(
+                                        ticker, 
+                                        financial_df[financial_df['Company'] == ticker], 
+                                        inflation/100, margin/100, 
+                                        stock_price[ticker])])
+            # print(futureprice_df)
+            # print(futureprice_df.pe)
+        futureprice_df.reset_index(inplace=True)
         # print(futureprice_df)
-        # print(futureprice_df.pe)
-    futureprice_df.reset_index(inplace=True)
-    # print(futureprice_df)
-    buy_sell_table = futureprice_df.rename(columns={
-        'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',
-        'lasteps': 'Last EPS', 'futureeps': 'EPS in 10 years', 
-        'pe': 'PE', 'marginprice': 'Margin Price',
-        'currentshareprice': 'Current Share Price', 'decision': 'Buy/Sell',
-        'PV': 'Present Value', 'FV': 'Future Value'
-        })
-    buy_sell_table[['Annual Growth Rate']] = buy_sell_table[[
-        'Annual Growth Rate']].applymap(convert_percent)
-    buy_sell_table[['Last EPS', 'EPS in 10 years', 'PE', 
-                    'Future Value', 'Present Value', 
-                    'Margin Price', 'Current Share Price']] = np.round(
-                        buy_sell_table[['Last EPS', 'EPS in 10 years', 
-                                        'PE', 
-                                        'Future Value', 'Present Value', 
-                                        'Margin Price', 
-                                        'Current Share Price']], 2)
-    buy_sell_table_written = buy_sell_table.to_dict('records')
-    # print('3 finish')
-    return buy_sell_table_written
+        buy_sell_table = futureprice_df.rename(columns={
+            'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',
+            'lasteps': 'Last EPS', 'futureeps': 'EPS in 10 years', 
+            'pe': 'PE', 'marginprice': 'Margin Price',
+            'currentshareprice': 'Current Share Price', 'decision': 'Buy/Sell',
+            'PV': 'Present Value', 'FV': 'Future Value'
+            })
+        buy_sell_table[['Annual Growth Rate']] = buy_sell_table[[
+            'Annual Growth Rate']].applymap(convert_percent)
+        buy_sell_table[['Last EPS', 'EPS in 10 years', 'PE', 
+                        'Future Value', 'Present Value', 
+                        'Margin Price', 'Current Share Price']] = np.round(
+                            buy_sell_table[['Last EPS', 'EPS in 10 years', 
+                                            'PE', 
+                                            'Future Value', 'Present Value', 
+                                            'Margin Price', 
+                                            'Current Share Price']], 2)
+        buy_sell_table_written = buy_sell_table.to_dict('records')
+        # print('3 finish')
+        return buy_sell_table_written
+    else:
+        return []
                         
 if __name__ == '__main__':
     app.run_server(debug=False)
