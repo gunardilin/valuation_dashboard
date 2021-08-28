@@ -63,7 +63,7 @@ app.layout = html.Div([
             {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
             ],
             multi = True,
-        #     value='AAPL',
+            # value='AAPL',
         
         # For productive deployment use the following options:
         # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
@@ -72,7 +72,9 @@ app.layout = html.Div([
         #                                           ignore_index=True)) +
         # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
         # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}]
+        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
+        # {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
+        # multi=True
     ),
     
     dcc.Graph(id='my-graph', figure={}),
@@ -248,7 +250,9 @@ def update_graph(tickers):
     stock_price_df = get_stocks_price(tickers)
     df_normalized = stock_price_df.div(stock_price_df.iloc[0]).reset_index()
     figure = px.line(df_normalized, x="Date", y=tickers, hover_data={
-        "Date": "| %d %B %Y"}, title='Stocks Price')
+        "Date": "| %d %B %Y"}, title='Stocks Price',
+        )
+    figure.update_layout(hovermode='x')
     # print('1 finish')
     return figure, stock_price_df.reset_index().to_dict('records')
 
