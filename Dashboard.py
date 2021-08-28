@@ -254,6 +254,20 @@ def update_graph(tickers):
             "Date": "| %d %B %Y"}, title='Stocks Price',
             )
         figure.update_layout(hovermode='x')
+        figure.update_xaxes(
+            rangeslider_visible = True,
+            rangeselector = dict(buttons = list([
+                dict(count=1, label='1m', step='month', stepmode='backward'),
+                dict(count=3, label='3m', step='month', stepmode='backward'),
+                dict(count=6, label='6m', step='month', stepmode='backward'),
+                dict(count=1, label='YTD', step='year', stepmode='todate'),
+                dict(count=1, label='1y', step='year', stepmode='backward'),
+                dict(count=2, label='2y', step='year', stepmode='backward'),
+                dict(count=3, label='3y', step='year', stepmode='backward'),
+                dict(count=4, label='4y', step='year', stepmode='backward'),
+                dict(step='all')
+            ]))
+        )
         # print('1 finish')
         return figure, stock_price_df.reset_index().to_dict('records')
     else:
