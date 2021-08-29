@@ -546,4 +546,4 @@ def generate_decision(inflation, margin, tickers, start1, stock_price_df_clients
         return []
                         
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
