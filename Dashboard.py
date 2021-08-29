@@ -300,8 +300,8 @@ def update_graph(stock_price_df_clientside):
             index='Date')
         stock_price_df.index = pd.to_datetime(stock_price_df.index)
         df_normalized = stock_price_df.div(stock_price_df.iloc[0]).reset_index()
-        figure = px.line(df_normalized, x="Date", y=stock_price_df.columns, hover_data={
-            "Date": "| %d %B %Y"}, title='Stocks Price',
+        figure = px.line(df_normalized, x="Date", y=stock_price_df.columns, 
+                        hover_data={"Date": "| %d %B %Y"}, title='Stocks Price',
             )
         figure.update_layout(hovermode='x')
         figure.update_xaxes(
@@ -449,5 +449,4 @@ def generate_decision(inflation, margin, tickers, start1, stock_price_df_clients
         return []
                         
 if __name__ == '__main__':
-    app.run_server(debug=True)
-    
+    app.run_server(debug=False)
