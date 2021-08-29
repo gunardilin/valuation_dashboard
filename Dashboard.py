@@ -276,18 +276,31 @@ app.layout = html.Div([
     dcc.Store(id='financial_df_table_clientside', data=[]),
 ])
 
-# For stock graph 1
+# For stock_price_df_clientside 0
 @app.callback(
-    Output(component_id='my-graph', component_property='figure'),
     Output(component_id='stock_price_df_clientside', component_property='data'),
     Input(component_id='my-dropdown', component_property='value'),
     prevent_initial_call=True)
-def update_graph(tickers):
+def update_stock_price_df_clientside(tickers):
     if len(tickers) != 0:
-        # print('1')
         stock_price_df = get_stocks_price(tickers)
+        return stock_price_df.reset_index().to_dict('records')
+    else:
+        return []
+
+# For stock graph 1
+@app.callback(
+    Output(component_id='my-graph', component_property='figure'),
+    Input(component_id='stock_price_df_clientside', component_property='data'),
+    prevent_initial_call=True)
+def update_graph(stock_price_df_clientside):
+    if len(stock_price_df_clientside) != 0:
+        # print('1')
+        stock_price_df = pd.DataFrame.from_records(stock_price_df_clientside, \
+            index='Date')
+        stock_price_df.index = pd.to_datetime(stock_price_df.index)
         df_normalized = stock_price_df.div(stock_price_df.iloc[0]).reset_index()
-        figure = px.line(df_normalized, x="Date", y=tickers, hover_data={
+        figure = px.line(df_normalized, x="Date", y=stock_price_df.columns, hover_data={
             "Date": "| %d %B %Y"}, title='Stocks Price',
             )
         figure.update_layout(hovermode='x')
@@ -306,9 +319,9 @@ def update_graph(tickers):
             ]))
         )
         # print('1 finish')
-        return figure, stock_price_df.reset_index().to_dict('records')
+        return figure#, stock_price_df.reset_index().to_dict('records')
     else:
-        return [], []
+        return []#, []
 
 # For financial_df table and warning_df_table 2
 def company_ratio (ticker):
@@ -436,5 +449,5 @@ def generate_decision(inflation, margin, tickers, start1, stock_price_df_clients
         return []
                         
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
     
