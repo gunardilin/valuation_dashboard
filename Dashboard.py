@@ -44,13 +44,14 @@ buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
 
 stock_price_df = 0
 
-app = dash.Dash(__name__)
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 server = app.server
 
 app.layout = html.Div([
-    html.H1('Stock Tickers'),
-    html.H3('Choose a stock ticker:'),
+    html.H1('Company valuation'),
+    html.H3('Choose stock tickers:'),
     
     dcc.Dropdown(
         id='my-dropdown',
@@ -76,6 +77,42 @@ app.layout = html.Div([
         # {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
         # multi=True
     ),
+    html.Div([
+        html.H3('Graph time horizon:', 
+        style={'width': '49%', 'display': 'inline-block'}),
+        html.H3('Graph mode:',
+        style={'width': '49%', 'display': 'inline-block'}),
+    ]),
+    
+    html.Div([
+        dcc.RadioItems(
+            id='view-periode',
+            options=[
+                {'label': '1M', 'value': '1M'},
+                {'label': '3M', 'value': '3M'},
+                {'label': '6M', 'value': '6M'},
+                {'label': 'YTD', 'value': 'YTD'},
+                {'label': '1Y', 'value': '1Y'},
+                {'label': '2Y', 'value': '2Y'},
+                {'label': '3Y', 'value': '3Y'},
+                {'label': '4Y', 'value': '4Y'},
+                {'label': 'All', 'value': 'All'},
+            ],
+            value='All',
+            labelStyle={'display': 'inline-block'},
+            style={'width': '49%', 'display': 'inline-block'},
+        ),
+        dcc.RadioItems(
+            id='view-mode',
+            options=[
+                {'label': '$', 'value': '$'},
+                {'label': '%', 'value': '%'},
+            ],
+            value='%',
+            labelStyle={'display': 'inline-block'},
+            style={'width': '49%', 'display': 'inline-block'},
+        ),
+        ]),
     
     dcc.Graph(id='my-graph', figure={}),
     
@@ -257,14 +294,14 @@ def update_graph(tickers):
         figure.update_xaxes(
             rangeslider_visible = True,
             rangeselector = dict(buttons = list([
-                dict(count=1, label='1m', step='month', stepmode='backward'),
-                dict(count=3, label='3m', step='month', stepmode='backward'),
-                dict(count=6, label='6m', step='month', stepmode='backward'),
+                dict(count=1, label='1M', step='month', stepmode='backward'),
+                dict(count=3, label='3M', step='month', stepmode='backward'),
+                dict(count=6, label='6M', step='month', stepmode='backward'),
                 dict(count=1, label='YTD', step='year', stepmode='todate'),
-                dict(count=1, label='1y', step='year', stepmode='backward'),
-                dict(count=2, label='2y', step='year', stepmode='backward'),
-                dict(count=3, label='3y', step='year', stepmode='backward'),
-                dict(count=4, label='4y', step='year', stepmode='backward'),
+                dict(count=1, label='1Y', step='year', stepmode='backward'),
+                dict(count=2, label='2Y', step='year', stepmode='backward'),
+                dict(count=3, label='3Y', step='year', stepmode='backward'),
+                dict(count=4, label='4Y', step='year', stepmode='backward'),
                 dict(step='all')
             ]))
         )
