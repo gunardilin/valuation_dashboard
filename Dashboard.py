@@ -50,33 +50,39 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 
 app.layout = html.Div([
-    html.H1('Company valuation'),
+    html.H1('Company valuation', 
+        style={
+            'textAlign': 'center',
+            }
+        ),
     html.H3('Choose stock tickers:'),
     
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        options=[
-            {'label': 'Coke', 'value': 'COKE'},
-            {'label': 'Tesla', 'value': 'TSLA'},
-            {'label': 'Apple', 'value': 'AAPL'},
-            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-            ],
-            multi = True,
+        # options=[
+        #     {'label': 'Coke', 'value': 'COKE'},
+        #     {'label': 'Tesla', 'value': 'TSLA'},
+        #     {'label': 'Apple', 'value': 'AAPL'},
+        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+        #     ],
+        #     multi = True,
             # value='AAPL',
         
         # For productive deployment use the following options:
-        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-        #                                           get_russel3000_info(),
-        #                                           get_foreigncompanies_info()],
-        #                                           ignore_index=True)) +
-        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
-        # {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
-        # multi=True
+        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+                                                  get_russel3000_info(),
+                                                  get_foreigncompanies_info()],
+                                                  ignore_index=True)) +
+        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
+        {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
+        multi=True
     ),
+    # html.Br(),
+    html.Hr(),
     html.Div([
         html.H3('Graph time horizon:', 
         style={'width': '49%', 'display': 'inline-block'}),
@@ -88,14 +94,14 @@ app.layout = html.Div([
         dcc.RadioItems(
             id='view-periode',
             options=[
-                {'label': '1M', 'value': '1M'},
-                {'label': '3M', 'value': '3M'},
-                {'label': '6M', 'value': '6M'},
-                {'label': 'YTD', 'value': 'YTD'},
-                {'label': '1Y', 'value': '1Y'},
-                {'label': '2Y', 'value': '2Y'},
-                {'label': '3Y', 'value': '3Y'},
-                {'label': '4Y', 'value': '4Y'},
+                {'label': '1M', 'value': '30D'},
+                {'label': '3M', 'value': '90D'},
+                {'label': '6M', 'value': '180D'},
+                {'label': 'YTD', 'value': '1Y'},
+                {'label': '1Y', 'value': '365D'},
+                {'label': '2Y', 'value': '730D'},
+                {'label': '3Y', 'value': '1095D'},
+                {'label': '4Y', 'value': '1460D'},
                 {'label': 'All', 'value': 'All'},
             ],
             value='All',
@@ -116,6 +122,9 @@ app.layout = html.Div([
     
     dcc.Graph(id='my-graph', figure={}),
     
+    # html.Br(),
+    html.Hr(),
+
     html.H3('Critical variables'),
     
     dash_table.DataTable(
@@ -292,36 +301,124 @@ def update_stock_price_df_clientside(tickers):
 @app.callback(
     Output(component_id='my-graph', component_property='figure'),
     Input(component_id='stock_price_df_clientside', component_property='data'),
+    Input(component_id='view-periode', component_property='value'),
+    Input(component_id='view-mode', component_property='value'),
     prevent_initial_call=True)
-def update_graph(stock_price_df_clientside):
+def update_graph(stock_price_df_clientside, periode, mode):
     if len(stock_price_df_clientside) != 0:
+        # Don't execute if df_clientside is empty.
         # print('1')
         stock_price_df = pd.DataFrame.from_records(stock_price_df_clientside, \
             index='Date')
         stock_price_df.index = pd.to_datetime(stock_price_df.index)
-        df_normalized = stock_price_df.div(stock_price_df.iloc[0]).reset_index()
-        figure = px.line(df_normalized, x="Date", y=stock_price_df.columns, 
+
+        if periode == 'All':
+            stock_price_in_periode = stock_price_df
+        else:
+            stock_price_in_periode = stock_price_df.last(periode)
+
+        if mode == '%':
+            # a. Normalize stock price to start periode
+            # print('1%')
+            graph_data_df = stock_price_in_periode.div(stock_price_in_periode.\
+                iloc[0]).reset_index()
+        else:
+            # b. Do not normalize stock price
+            # print('1$')
+            graph_data_df = stock_price_in_periode.reset_index()
+        
+        figure = px.line(graph_data_df, x="Date", y=graph_data_df.columns, 
                         hover_data={"Date": "| %d %B %Y"}, title='Stocks Price',
             )
         figure.update_layout(hovermode='x')
         figure.update_xaxes(
-            rangeslider_visible = True,
-            rangeselector = dict(buttons = list([
-                dict(count=1, label='1M', step='month', stepmode='backward'),
-                dict(count=3, label='3M', step='month', stepmode='backward'),
-                dict(count=6, label='6M', step='month', stepmode='backward'),
-                dict(count=1, label='YTD', step='year', stepmode='todate'),
-                dict(count=1, label='1Y', step='year', stepmode='backward'),
-                dict(count=2, label='2Y', step='year', stepmode='backward'),
-                dict(count=3, label='3Y', step='year', stepmode='backward'),
-                dict(count=4, label='4Y', step='year', stepmode='backward'),
-                dict(step='all')
-            ]))
-        )
+            rangeslider_visible = True)
+
+        if periode=='All':
+            figure.update_xaxes(
+                rangeselector = dict(buttons = list([
+                    dict(count=1, label='1M', step='month', stepmode='backward'),
+                    dict(count=3, label='3M', step='month', stepmode='backward'),
+                    dict(count=6, label='6M', step='month', stepmode='backward'),
+                    dict(count=1, label='YTD', step='year', stepmode='todate'),
+                    dict(count=1, label='1Y', step='year', stepmode='backward'),
+                    dict(count=2, label='2Y', step='year', stepmode='backward'),
+                    dict(count=3, label='3Y', step='year', stepmode='backward'),
+                    dict(count=4, label='4Y', step='year', stepmode='backward'),
+                    dict(step='all')
+                ]))
+            )
+        elif periode=='1460D':
+            figure.update_xaxes(
+                rangeselector = dict(buttons = list([
+                    dict(count=1, label='1M', step='month', stepmode='backward'),
+                    dict(count=3, label='3M', step='month', stepmode='backward'),
+                    dict(count=6, label='6M', step='month', stepmode='backward'),
+                    dict(count=1, label='YTD', step='year', stepmode='todate'),
+                    dict(count=1, label='1Y', step='year', stepmode='backward'),
+                    dict(count=2, label='2Y', step='year', stepmode='backward'),
+                    dict(count=3, label='3Y', step='year', stepmode='backward'),
+                    dict(step='all')
+                ]))
+            )
+        elif periode=='1095D':
+            figure.update_xaxes(
+                rangeselector = dict(buttons = list([
+                    dict(count=1, label='1M', step='month', stepmode='backward'),
+                    dict(count=3, label='3M', step='month', stepmode='backward'),
+                    dict(count=6, label='6M', step='month', stepmode='backward'),
+                    dict(count=1, label='YTD', step='year', stepmode='todate'),
+                    dict(count=1, label='1Y', step='year', stepmode='backward'),
+                    dict(count=2, label='2Y', step='year', stepmode='backward'),
+                    dict(step='all')
+                ]))
+            )
+        elif periode=='730D':
+            figure.update_xaxes(
+                rangeselector = dict(buttons = list([
+                    dict(count=1, label='1M', step='month', stepmode='backward'),
+                    dict(count=3, label='3M', step='month', stepmode='backward'),
+                    dict(count=6, label='6M', step='month', stepmode='backward'),
+                    dict(count=1, label='YTD', step='year', stepmode='todate'),
+                    dict(count=1, label='1Y', step='year', stepmode='backward'),
+                    dict(step='all')
+                ]))
+            )
+        elif periode=='365D' or periode=='1Y':
+            figure.update_xaxes(
+                rangeselector = dict(buttons = list([
+                    dict(count=1, label='1M', step='month', stepmode='backward'),
+                    dict(count=3, label='3M', step='month', stepmode='backward'),
+                    dict(count=6, label='6M', step='month', stepmode='backward'),
+                    dict(count=1, label='YTD', step='year', stepmode='todate'),
+                    dict(step='all')
+                ]))
+            )
+        elif periode=='180D':
+            figure.update_xaxes(
+                rangeselector = dict(buttons = list([
+                    dict(count=1, label='1M', step='month', stepmode='backward'),
+                    dict(count=3, label='3M', step='month', stepmode='backward'),
+                    dict(step='all')
+                ]))
+            )
+        elif periode=='90D':
+            figure.update_xaxes(
+                rangeselector = dict(buttons = list([
+                    dict(count=1, label='1M', step='month', stepmode='backward'),
+                    dict(step='all')
+                ]))
+            )
+        elif periode=='30D':
+            figure.update_xaxes(
+                rangeselector = dict(buttons = list([
+                    dict(step='all')
+                ]))
+            )
         # print('1 finish')
         return figure#, stock_price_df.reset_index().to_dict('records')
     else:
-        return []#, []
+        return {}
 
 # For financial_df table and warning_df_table 2
 def company_ratio (ticker):
@@ -449,4 +546,4 @@ def generate_decision(inflation, margin, tickers, start1, stock_price_df_clients
         return []
                         
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
