@@ -8,6 +8,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import dash_table
+# import dash_bootstrap_components as dbc
 # from datetime import datetime as dt
 
 import pandas as pd
@@ -45,7 +46,7 @@ buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
 stock_price_df = 0
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__)
 
 server = app.server
 
@@ -119,8 +120,11 @@ app.layout = html.Div([
             style={'width': '49%', 'display': 'inline-block'},
         ),
         ]),
+    dcc.Loading(
+        id='loading-1', type='default',
+        children = dcc.Graph(id='my-graph', figure={}),
+    ),
     
-    dcc.Graph(id='my-graph', figure={}),
     
     # html.Br(),
     html.Hr(),
@@ -212,7 +216,7 @@ app.layout = html.Div([
     
     html.Br(),
     # html.Hr(),
-    html.H3('Buy/Sell:'),
+    html.H3('Intrinsic value based on EPS:'),
     
     dash_table.DataTable(
         id='buy_sell',
