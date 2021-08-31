@@ -123,6 +123,7 @@ app.layout = html.Div([
     dcc.Loading(
         id='loading-1', type='default',
         children = dcc.Graph(id='my-graph', figure={}),
+        # fullscreen=True
     ),
     
     
@@ -131,64 +132,74 @@ app.layout = html.Div([
 
     html.H3('Critical variables'),
     
-    dash_table.DataTable(
-        id='financial_df', 
-        columns=[{"name": i, "id": i} for i in financial_df_table.columns],
-        data=financial_df_table.to_dict('records'), 
-        style_header={
-            'backgroundColor': 'white', 
-            'fontWeight': 'bold'
-            },
-        style_data_conditional=[
-            {
-                'if': {
-                    'filter_query': '{EPS} <= 0',
-                    'column_id': 'EPS'
+    dcc.Loading(
+        id='loading-2', type='default',
+        children = 
+            dash_table.DataTable(
+                id='financial_df', 
+                columns=[{"name": i, "id": i} for i in financial_df_table.columns],
+                data=financial_df_table.to_dict('records'), 
+                style_header={
+                    'backgroundColor': 'white', 
+                    'fontWeight': 'bold'
+                    },
+                style_data_conditional=[
+                    {
+                        'if': {
+                            'filter_query': '{EPS} <= 0',
+                            'column_id': 'EPS'
+                                },
+                        'backgroundColor': '#FF4136',
+                        'color': 'white'
                         },
-                'backgroundColor': '#FF4136',
-                'color': 'white'
-                },
-            
-            {
-                'if': {
-                    'filter_query': '{Net Income} contains "-"',
-                    'column_id': 'Net Income',
-                },
-                'backgroundColor': '#FF4136',
-                'color': 'white'
-                },
-            {
-                'if': {
-                    'filter_query': '{EPS-Growth} contains "-"',
-                    'column_id': 'EPS-Growth'
+                    
+                    {
+                        'if': {
+                            'filter_query': '{Net Income} contains "-"',
+                            'column_id': 'Net Income',
                         },
-                'backgroundColor': '#FF4136',
-                'color': 'white'
-                },   
-            ],
-        # tooltip_header={
-        #     i: i for i in financial_df_table.columns
-        #     'EPS': 'Earning per Share'
-        #     }, 
-        ),
+                        'backgroundColor': '#FF4136',
+                        'color': 'white'
+                        },
+                    {
+                        'if': {
+                            'filter_query': '{EPS-Growth} contains "-"',
+                            'column_id': 'EPS-Growth'
+                                },
+                        'backgroundColor': '#FF4136',
+                        'color': 'white'
+                        },   
+                    ],
+                # tooltip_header={
+                #     i: i for i in financial_df_table.columns
+                #     'EPS': 'Earning per Share'
+                #     }, 
+                ),
+        # fullscreen=True
+    ),
     
     html.Br(),
     html.Hr(),
     # html.Br(),
     html.H3('Warnings:'),
     
-    dash_table.DataTable(
-        id='warning_df',
-        columns=[{"name": i, "id": i} for i in warning_df_table.columns],
-        data=warning_df_table.to_dict('records'),
-        style_header={
-            'backgroundColor': 'white', 
-            'fontWeight': 'bold'
-            },
-        style_cell={
-            'textAlign': 'left'
-            },
-        ), 
+    dcc.Loading(
+        id='loading-3', type='default',
+        children = 
+            dash_table.DataTable(
+                id='warning_df',
+                columns=[{"name": i, "id": i} for i in warning_df_table.columns],
+                data=warning_df_table.to_dict('records'),
+                style_header={
+                    'backgroundColor': 'white', 
+                    'fontWeight': 'bold'
+                    },
+                style_cell={
+                    'textAlign': 'left'
+                    },
+                ), 
+        # fullscreen=True
+    ),
     
     html.Br(),
     html.Hr(),
@@ -218,70 +229,76 @@ app.layout = html.Div([
     # html.Hr(),
     html.H3('Intrinsic value based on EPS:'),
     
-    dash_table.DataTable(
-        id='buy_sell',
-        columns=[{"name": i, "id": i} for i in buy_sell_table.columns],
-        data=buy_sell_table.to_dict('records'),
-        style_header={
-            'backgroundColor': 'white', 
-            'fontWeight': 'bold'
-            },
-        style_cell={
-            'textAlign': 'left'
-            },
-        style_data_conditional=[
-            {
-                'if': {
-                    'filter_query': '{Buy/Sell} contains "Buy"',
-                    'column_id': 'Buy/Sell',
-                },
-                'backgroundColor': '#3D9970',
-                'color': 'white'
-                },
-            {
-                'if': {
-                    'filter_query': '{Buy/Sell} contains "Sell"',
-                    'column_id': 'Buy/Sell'
+    dcc.Loading(
+        id='loading-4', type='default',
+        children = 
+            dash_table.DataTable(
+                id='buy_sell',
+                columns=[{"name": i, "id": i} for i in buy_sell_table.columns],
+                data=buy_sell_table.to_dict('records'),
+                style_header={
+                    'backgroundColor': 'white', 
+                    'fontWeight': 'bold'
+                    },
+                style_cell={
+                    'textAlign': 'left'
+                    },
+                style_data_conditional=[
+                    {
+                        'if': {
+                            'filter_query': '{Buy/Sell} contains "Buy"',
+                            'column_id': 'Buy/Sell',
                         },
-                'backgroundColor': '#FF4136',
-                'color': 'white'
-                },
-            {
-                'if': {
-                    'filter_query': '{PE} >= 25',
-                    'column_id': 'PE'
+                        'backgroundColor': '#3D9970',
+                        'color': 'white'
                         },
-                'backgroundColor': '#ffbf00',
-                'color': 'black'
-                },
-            {
-                'if': {
-                    'filter_query': '{PE} <= 0',
-                    'column_id': 'PE'
+                    {
+                        'if': {
+                            'filter_query': '{Buy/Sell} contains "Sell"',
+                            'column_id': 'Buy/Sell'
+                                },
+                        'backgroundColor': '#FF4136',
+                        'color': 'white'
                         },
-                'backgroundColor': '#FF4136',
-                'color': 'white'
-                },
-            
-            ],
-            tooltip_data=[
-                {
-                    'PE': 'Minimum PE'
-                },
-                {
-                    'PE': 'Maximum PE'
-                },
-                {
-                    'PE': 'Mean PE'
-                },
-            ],
-            tooltip_header={
-                # i: i for i in buy_sell_table.columns
-               'PE': 'Price Earning Ratio'
-                },
-            # tooltip_delay=0,
-            # tooltip_duration=2
-        ),
+                    {
+                        'if': {
+                            'filter_query': '{PE} >= 25',
+                            'column_id': 'PE'
+                                },
+                        'backgroundColor': '#ffbf00',
+                        'color': 'black'
+                        },
+                    {
+                        'if': {
+                            'filter_query': '{PE} <= 0',
+                            'column_id': 'PE'
+                                },
+                        'backgroundColor': '#FF4136',
+                        'color': 'white'
+                        },
+                    
+                    ],
+                    tooltip_data=[
+                        {
+                            'PE': 'Minimum PE'
+                        },
+                        {
+                            'PE': 'Maximum PE'
+                        },
+                        {
+                            'PE': 'Mean PE'
+                        },
+                    ],
+                    tooltip_header={
+                        # i: i for i in buy_sell_table.columns
+                    'PE': 'Price Earning Ratio'
+                        },
+                    # tooltip_delay=0,
+                    # tooltip_duration=2
+                ),
+        # fullscreen=True
+    ),
+    
     
     html.Br(),
     html.Hr(),
@@ -295,6 +312,7 @@ app.layout = html.Div([
     Input(component_id='my-dropdown', component_property='value'),
     prevent_initial_call=True)
 def update_stock_price_df_clientside(tickers):
+    print('0')
     if len(tickers) != 0:
         stock_price_df = get_stocks_price(tickers)
         return stock_price_df.reset_index().to_dict('records')
@@ -309,9 +327,9 @@ def update_stock_price_df_clientside(tickers):
     Input(component_id='view-mode', component_property='value'),
     prevent_initial_call=True)
 def update_graph(stock_price_df_clientside, periode, mode):
+    print('1')
     if len(stock_price_df_clientside) != 0:
         # Don't execute if df_clientside is empty.
-        # print('1')
         stock_price_df = pd.DataFrame.from_records(stock_price_df_clientside, \
             index='Date')
         stock_price_df.index = pd.to_datetime(stock_price_df.index)
@@ -443,8 +461,8 @@ def company_ratio (ticker):
     # Input(component_id='stock_price_df_clientside', component_property='data'),
     prevent_initial_call=True)
 def generate_financial_warning_df_table(stock_tickers):
+    print('2')
     if len(stock_tickers) != 0:
-        # print('2')
         # financial_df_table = calculate_ratio(get_financial_df(get_statement
         #                                                       (stock_ticker)))
         # company_ratio = lambda ticker: calculate_ratio(get_financial_df(
@@ -499,8 +517,8 @@ def generate_financial_warning_df_table(stock_tickers):
     prevent_initial_call=True)
 def generate_decision(inflation, margin, tickers, start1, stock_price_df_clientside,
                       financial_df_clientside):
+    print('3')
     if len(tickers) != 0:
-        # print('3')
         # Formating stock_price_df_clientside
         stock_price = pd.DataFrame.from_records(stock_price_df_clientside, \
             index='Date')
