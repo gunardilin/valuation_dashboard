@@ -8,7 +8,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import dash_table
-# import dash_bootstrap_components as dbc
+import dash_bootstrap_components as dbc
 # from datetime import datetime as dt
 
 import pandas as pd
@@ -61,26 +61,26 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='my-dropdown',
         # For testing purpose use the following options:
-        # options=[
-        #     {'label': 'Coke', 'value': 'COKE'},
-        #     {'label': 'Tesla', 'value': 'TSLA'},
-        #     {'label': 'Apple', 'value': 'AAPL'},
-        #     {'label': 'Kirkland Lake Gold', 'value': 'KL'},
-        #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
-        #     ],
-        #     multi = True,
+        options=[
+            {'label': 'Coke', 'value': 'COKE'},
+            {'label': 'Tesla', 'value': 'TSLA'},
+            {'label': 'Apple', 'value': 'AAPL'},
+            {'label': 'Kirkland Lake Gold', 'value': 'KL'},
+            {'label': 'Schrodinger Inc.', 'value': 'SDGR'}
+            ],
+            multi = True,
             # value='AAPL',
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
-                                                  get_russel3000_info(),
-                                                  get_foreigncompanies_info()],
-                                                  ignore_index=True)) +
-        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
-        {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
-        multi=True
+        # options=format_for_dashdropdown(pd.concat([get_sp500_info(), 
+        #                                           get_russel3000_info(),
+        #                                           get_foreigncompanies_info()],
+        #                                           ignore_index=True)) +
+        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
+        # {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
+        # multi=True
     ),
     # html.Br(),
     html.Hr(),
@@ -203,30 +203,51 @@ app.layout = html.Div([
     
     html.Br(),
     html.Hr(),
-    html.H3('[Assumption] Inflation over next 10 years:'),
-    
-    dcc.Slider(
-        id='inflation_slider',
-        min=0,
-        max=100,
-        step=5,
-        marks={i: '{}%'.format(i) for i in range(0, 100, 5)},
-        value=20),
+
+    html.Div([
+        html.H3('[Assumption] Inflation over next 10 years:', 
+            style = {'width': '49%', 'display': 'inline-block', 
+                'text-align': 'center'}),
+            # ‘align-items’: ‘center’, ‘justify-content’: ‘center’
+        html.H3('[Tolerance] Margin of Safety:', 
+            style={'width': '49%', 'display': 'inline-block',
+                'text-align': 'center'}),
+    ]),
+    html.Br(),
+
+# dbc.Row([
+#             dbc.Col(dbc.Input(id="passenger_count", type="number", min=1, max=6, step=1, value=1),
+#                     width={'size': 2, 'offset': 1}),
+#             dbc.Col(dbc.Button(id="loading-button", n_clicks=0, children=["Passengers"]),
+#                     width={'size': 1, 'offset': 0})
+#         ], no_gutters=True),
+
+    html.Div([
+        html.Div(
+            dcc.Slider(
+                id='inflation_slider',
+                min=0,
+                max=30,
+                step=5,
+                marks={i: '{}%'.format(i) for i in range(0, 35, 5)},
+                value=20),
+            style={'width': '49%', 'display': 'inline-block'}
+            # ‘display’: ‘flex’, ‘align-items’: ‘center’, ‘justify-content’: ‘center’
+        ),
+        html.Div(
+            dcc.Slider(
+                id='margin_slider',
+                min=0,
+                max=50,
+                step=5,
+                marks={i: '{}%'.format(i) for i in range(0, 55, 10)},
+                value=25),
+            style={'width': '49%', 'display': 'inline-block'}
+        )
+    ]),
     
     html.Br(),
-    # html.Hr(),
-    html.H3('[Tolerance] Margin of Safety:'),
-    
-    dcc.Slider(
-        id='margin_slider',
-        min=0,
-        max=100,
-        step=5,
-        marks={i: '{}%'.format(i) for i in range(0, 100, 5)},
-        value=25),
-    
-    html.Br(),
-    # html.Hr(),
+    html.Hr(),
     html.H3('Intrinsic value based on EPS:'),
     
     dcc.Loading(
