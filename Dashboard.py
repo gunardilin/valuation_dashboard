@@ -21,7 +21,7 @@ from get_statement import get_statement , open_in_excel
 from get_financial_df import get_financial_df, calculate_ratio
 from human_readable_format import readable_format, convert_percent
 from warning_sign import warning_sign
-from future_value import generate_futureprice
+from future_value import generate_futureprice, growth_pe
 
 financial_df_table = pd.DataFrame({'Company':[], 'Year':[], 
                                     'Shareholder Equity':[], 
@@ -34,6 +34,12 @@ financial_df_table = pd.DataFrame({'Company':[], 'Year':[],
 # warning_df_table is not necessary to be stored clientside, since no following
 # callback needs input from it.
 warning_df_table = pd.DataFrame({'Company': ['None'], 'Warning': ['None']})
+
+growth_pe_table = pd.DataFrame({'Company': [], 
+                                'Historical Growth Rate\n (min, mean, max)': [],
+                                'Historical PE\n (min, mean, max)': [], 
+                                'Annual Growth Rate\n %': [],
+                                'PE': []})
 
 # buy_sell_table might not need to be stored clientside, cos it will not be 
 # accessed by other callback.
@@ -141,8 +147,12 @@ app.layout = html.Div([
                 data=financial_df_table.to_dict('records'), 
                 style_header={
                     'backgroundColor': 'white', 
-                    'fontWeight': 'bold'
+                    'fontWeight': 'bold',
+                    'textAlign': 'center'
                     },
+                style_cell={
+                    'textAlign': 'left'
+                },
                 style_data_conditional=[
                     {
                         'if': {
@@ -170,6 +180,7 @@ app.layout = html.Div([
                         'color': 'white'
                         },   
                     ],
+                    # fill_width=False,
                 # tooltip_header={
                 #     i: i for i in financial_df_table.columns
                 #     'EPS': 'Earning per Share'
@@ -192,11 +203,13 @@ app.layout = html.Div([
                 data=warning_df_table.to_dict('records'),
                 style_header={
                     'backgroundColor': 'white', 
-                    'fontWeight': 'bold'
+                    'fontWeight': 'bold',
+                    'textAlign': 'center'
                     },
                 style_cell={
                     'textAlign': 'left'
                     },
+                fill_width=False
                 ), 
         # fullscreen=True
     ),
@@ -247,11 +260,30 @@ app.layout = html.Div([
     ]),
     
     html.Br(),
+
+    html.H3('Parameters:'),
+    dcc.Loading(
+        id='loading-4', type='default',
+        children = 
+            dash_table.DataTable(
+                id='growth_pe',
+                columns=[{'name': i, 'id': i} for i in growth_pe_table.columns],
+                data=growth_pe_table.to_dict('records'),
+                style_header={
+                    'backgroundColor': 'white', 'fontWeight': 'bold',
+                    'textAlign': 'center'},
+                style_cell={
+                    'whiteSpace': 'pre-line',
+                    'textAlign': 'left'},
+                # fill_width=False
+            )
+    ),
+
     html.Hr(),
     html.H3('Intrinsic value based on EPS:'),
     
     dcc.Loading(
-        id='loading-4', type='default',
+        id='loading-5', type='default',
         children = 
             dash_table.DataTable(
                 id='buy_sell',
@@ -259,7 +291,8 @@ app.layout = html.Div([
                 data=buy_sell_table.to_dict('records'),
                 style_header={
                     'backgroundColor': 'white', 
-                    'fontWeight': 'bold'
+                    'fontWeight': 'bold',
+                    'textAlign': 'center'
                     },
                 style_cell={
                     'textAlign': 'left'
@@ -314,6 +347,7 @@ app.layout = html.Div([
                         # i: i for i in buy_sell_table.columns
                     'PE': 'Price Earning Ratio'
                         },
+                    # fill_width=False,
                     # tooltip_delay=0,
                     # tooltip_duration=2
                 ),
@@ -478,10 +512,11 @@ def company_ratio (ticker):
     Output(component_id='financial_df', component_property='data'),
     Output(component_id='warning_df', component_property='data'),
     Output(component_id='financial_df_table_clientside', component_property='data'),
-    Input(component_id='my-dropdown', component_property='value'),
+    Input(component_id='stock_price_df_clientside', component_property='data'),
+    State(component_id='my-dropdown', component_property='value'),
     # Input(component_id='stock_price_df_clientside', component_property='data'),
     prevent_initial_call=True)
-def generate_financial_warning_df_table(stock_tickers):
+def generate_financial_warning_df_table(startsignal, stock_tickers):
     print('2')
     if len(stock_tickers) != 0:
         # financial_df_table = calculate_ratio(get_financial_df(get_statement
@@ -526,7 +561,59 @@ def generate_financial_warning_df_table(stock_tickers):
     else:
         return [], [], []
 
-# For buy_sell_table 3
+# For growth_pe table 3
+@app.callback(
+    Output(component_id='growth_pe', component_property='data'),
+    Input(component_id='financial_df_table_clientside', component_property='data'),
+    State(component_id='my-dropdown', component_property='value'),
+    State(component_id='stock_price_df_clientside', component_property='data'),
+    prevent_initial_call=True)
+def show_parameters(financial_df_clientside, tickers, stock_price_df_clientside):
+    print('3')
+    if len(stock_price_df_clientside) != 0:
+        # Create an empty table and define the headers
+        growth_pe_table = pd.DataFrame(columns=['ticker', 'historic_growthrate',
+                                                'historic_pe', 'growthrate', 
+                                                'pe'])
+        pd.options.display.float_format = '{:20,.2f}'.format
+
+        # Preprocessing clientside-dfs for further process
+        stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index="Date")
+        stock_price.index = pd.to_datetime(stock_price.index)
+        # financial_df = pd.DataFrame.from_records(financial_df_clientside)
+        financial_df = pd.DataFrame.from_records(financial_df_clientside, \
+            index='index')
+
+        for i, ticker in enumerate(tickers):
+            growth_pe_dict = growth_pe(ticker, stock_price[ticker], 
+                                financial_df[financial_df['Company'] == ticker])
+            historic_growthrate_str = ", ".join(map(convert_percent, \
+                                                [growth_pe_dict['growth_min'], 
+                                                growth_pe_dict['growth_mean'],
+                                                growth_pe_dict['growth_max']]))
+            
+            historic_pe_str = ", ".join([str(growth_pe_dict['pe_min']), 
+                                        str(growth_pe_dict['pe_mean']), 
+                                        str(growth_pe_dict['pe_max'])])
+            growth_pe_table.loc[i] = [ticker, historic_growthrate_str, 
+                                        historic_pe_str, 
+                                        convert_percent(growth_pe_dict[\
+                                            'growth_mean']).replace('%', ''),
+                                        growth_pe_dict['pe_mean']]
+        
+        # print(growth_pe_table)
+
+        return growth_pe_table.rename(columns={
+            'ticker': 'Company', 
+            'historic_growthrate': 'Historical Growth Rate\n (min, mean, max)',
+            'historic_pe': 'Historical PE\n (min, mean, max)',
+            'growthrate': 'Annual Growth Rate\n %',
+            'pe': 'PE'
+        }).to_dict('records')
+    else:
+        return []
+
+# For buy_sell_table 4
 @app.callback(
     Output(component_id='buy_sell', component_property='data'),
     Input(component_id='inflation_slider', component_property='value'),
@@ -538,7 +625,7 @@ def generate_financial_warning_df_table(stock_tickers):
     prevent_initial_call=True)
 def generate_decision(inflation, margin, tickers, start1, stock_price_df_clientside,
                       financial_df_clientside):
-    print('3')
+    print('4')
     if len(tickers) != 0:
         # Formating stock_price_df_clientside
         stock_price = pd.DataFrame.from_records(stock_price_df_clientside, \
