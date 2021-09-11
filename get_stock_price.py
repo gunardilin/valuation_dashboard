@@ -6,7 +6,7 @@
 # Created Date: Friday, March 5th 2021, 3:24:22 pm
 # Author: Gunardi Ali
 # -----
-# Last Modified: Thursday, August 26th 2021, 7:34:26 pm
+# Last Modified: Tuesday, September 7th 2021, 8:23:28 pm
 # Modified By: Gunardi Ali
 # -----
 # Copyright (c) 2021 Gunardi Ali
@@ -54,4 +54,5 @@ def format_stockprice_df(stockprice_df):
         'y': stockprice_df.Close.values}]}
 
 if __name__ == "__main__":
-    print(format_stockprice_df(get_stock_price('AAPL')))
+    # print(format_stockprice_df(get_stock_price('AAPL')))
+    print(get_stocks_price(['AAPL', 'COKE']).head())

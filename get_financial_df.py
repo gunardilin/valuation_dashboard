@@ -6,6 +6,7 @@ Created on Fri Mar 12 22:12:05 2021
 """
 
 import pandas as pd
+import numpy as np
 
 def define_ebitda(tables_list):
     if 'ebitda' in tables_list[2].index:
@@ -16,7 +17,7 @@ def define_ebitda(tables_list):
 def get_financial_df(tables_list):
     tables_list[2].rename({'interest expense': 'total interest expense',
                       'income taxes': 'income tax'}, axis='index', inplace=True)
-    return pd.DataFrame({'shareholderequity': tables_list[1].loc['total shareholders\' equity'],
+    table_df =  pd.DataFrame({'shareholderequity': tables_list[1].loc['total shareholders\' equity'],
               'longtermdebt': tables_list[1].loc['long-term debt'],
               'eps': tables_list[2].loc['eps (basic)'],
               'epsgrowth': tables_list[2].loc['eps (basic) growth'],
@@ -25,14 +26,23 @@ def get_financial_df(tables_list):
               'interestexpense': tables_list[2].loc['total interest expense'],
               'ebitda': define_ebitda(tables_list)
              })
+    table_df.longtermdebt[table_df.longtermdebt.isnull()] = 0
+    table_df.interestexpense[table_df.interestexpense.isnull()] = 0
+    return table_df
 
 def calculate_ratio(financial_df):
+    # financial_df.longtermdebt[financial_df.longtermdebt.isnull()] = 0
+    # financial_df.interestexpense[financial_df.interestexpense.isnull()] = 0
     financial_df['roe'] = financial_df.netincome / financial_df.shareholderequity
-    financial_df['interestcoverageratio'] = financial_df.ebitda / financial_df.interestexpense
+    financial_df['interestcoverageratio'] = financial_df.ebitda / \
+        financial_df.interestexpense
+    # If interest expense is 0 and ebitda is positive number then interest
+    # coverage ratio will be infinite (999999999).
+    financial_df[np.isinf(financial_df)] = 999999999
     return financial_df
 
 if __name__ == "__main__":
     from get_statement import get_statement, open_in_excel
-    # open_in_excel(get_financial_df(get_statement('coke')))
+    # open_in_excel(get_financial_df(get_statement('fb')))
     # print(calculate_ratio(get_financial_df(get_statement('coke'))))
-    open_in_excel(calculate_ratio(get_financial_df(get_statement('coke'))))
+    open_in_excel(calculate_ratio(get_financial_df(get_statement('fb'))))
