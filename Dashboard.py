@@ -98,8 +98,15 @@ app.layout = html.Div([
 
         placeholder="You can select multiple companies",
     ),
-    # html.Br(),
-    html.Hr(),
+    html.Br(),
+    # html.Hr(),
+    
+    dcc.Loading(
+        id='loading-1', type='default',
+        children = dcc.Graph(id='my-graph', figure={})
+        # fullscreen=True
+    ),
+    
     html.Div([
         html.H3('[X-Axis] Graph time horizon:', 
         style={'width': '49%', 'display': 'inline-block'}),
@@ -136,14 +143,8 @@ app.layout = html.Div([
             style={'width': '49%', 'display': 'inline-block'}
         )
         ]),
-    dcc.Loading(
-        id='loading-1', type='default',
-        children = dcc.Graph(id='my-graph', figure={})
-        # fullscreen=True
-    ),
     
-    
-    # html.Br(),
+    html.Br(),
     html.Hr(),
 
     html.H3('Critical variables'),
