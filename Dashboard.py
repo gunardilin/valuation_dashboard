@@ -85,10 +85,10 @@ app.layout = html.Div([
             # value='AAPL',
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(pd.concat([get_russel_microcap_info(), 
-                                                    get_sp500_info(), 
+        options=format_for_dashdropdown(pd.concat([ get_sp500_info(), 
+                                                    get_russel3000_info(),
                                                     get_foreigncompanies_info(),
-                                                    get_russel3000_info(),],
+                                                    get_russel_microcap_info()],
                                                     ignore_index=True)) +
         [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
         {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
