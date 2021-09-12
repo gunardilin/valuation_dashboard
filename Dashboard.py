@@ -37,12 +37,6 @@ financial_df_table = pd.DataFrame({'Company':[], 'Year':[],
 # callback needs input from it.
 warning_df_table = pd.DataFrame({'Company': ['None'], 'Warning': ['None']})
 
-growth_pe_table = pd.DataFrame({'Company': [], 
-                                'Historical Growth Rate\n (min, mean, max)': [],
-                                'Historical PE\n (min, mean, max)': [], 
-                                'Annual Growth Rate\n %': [],
-                                'PE': []})
-
 percentage = FormatTemplate.percentage(2)
 
 # buy_sell_table might not need to be stored clientside, cos it will not be 
@@ -100,14 +94,16 @@ app.layout = html.Div([
         {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
         {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
         {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
-        multi=True
+        multi=True,
+
+        placeholder="You can select multiple companies",
     ),
     # html.Br(),
     html.Hr(),
     html.Div([
-        html.H3('Graph time horizon:', 
+        html.H3('[X-Axis] Graph time horizon:', 
         style={'width': '49%', 'display': 'inline-block'}),
-        html.H3('Graph mode:',
+        html.H3('[Y-Axis] Graph mode:',
         style={'width': '49%', 'display': 'inline-block'})
     ]),
     
@@ -164,6 +160,19 @@ app.layout = html.Div([
                     'fontWeight': 'bold',
                     'textAlign': 'center'
                     },
+                style_header_conditional=[{
+                    'if': {'column_id': col},
+                        'textDecoration': 'underline',
+                        'textDecorationStyle': 'dotted',
+                        } for col in ['ROA', 'ROE', 'Interest Coverage Ratio']
+                    ],
+                tooltip_header={
+                        'ROA': 'Return on Assets: Net Income/Total Assets',
+                        'ROE': 'Return on Equity: Net Income/Shareholder Equity',
+                        'Interest Coverage Ratio': 'EBITDA/Interest Expense'
+                    },
+                tooltip_delay=0,
+                tooltip_duration=None,
                 style_cell={
                     'textAlign': 'left'
                 },
@@ -232,7 +241,7 @@ app.layout = html.Div([
     html.Hr(),
 
     html.Div([
-        html.H3('[Assumption] Inflation over next 10 years:', 
+        html.H3('[Assumption] Inflation per year:', 
             style = {'width': '49%', 'display': 'inline-block', 
                 'text-align': 'center'}),
             # ‘align-items’: ‘center’, ‘justify-content’: ‘center’
@@ -246,11 +255,11 @@ app.layout = html.Div([
         html.Div(
             dcc.Slider(
                 id='inflation_slider',
-                min=0,
-                max=30,
-                step=5,
-                marks={i: '{}%'.format(i) for i in range(0, 35, 5)},
-                value=20),
+                min=-4,
+                max=8,
+                step=0.5,
+                marks={i: '{}%'.format(i) for i in range(-4, 9, 1)},
+                value=2),
             style={'width': '49%', 'display': 'inline-block'}
             # ‘display’: ‘flex’, ‘align-items’: ‘center’, ‘justify-content’: ‘center’
         ),
@@ -268,7 +277,8 @@ app.layout = html.Div([
     
     html.Br(),
 
-    html.H3('Parameters:'),
+    html.H3('[Parameters] Annual Growth Rate, PE:'),
+    html.H6('Entries under "Annual Growth Rate" and "PE" columns can be modified.'),
     dcc.Loading(
         id='loading-4', type='default',
         children = 
@@ -278,7 +288,7 @@ app.layout = html.Div([
                 columns = [
                     dict(id='company', name='Company'),
                     dict(id='historical_growth_rate', 
-                        name='Historical Growth Rate\n (min, mean, max)'),
+                        name='Historical Growth Rate\n (min, mean or annualized, max)'),
                     dict(id='historical_pe',
                         name='Historical PE\n (min, mean, max)'),
                     dict(id='annual_growth_rate',
@@ -290,9 +300,60 @@ app.layout = html.Div([
                 style_header={
                     'backgroundColor': 'white', 'fontWeight': 'bold',
                     'textAlign': 'center'},
+                style_header_conditional=[{
+                    'if': {'column_id': col},
+                    'textDecoration': 'underline',
+                    'textDecorationStyle': 'dotted',
+                    } for col in ['annual_growth_rate', 'pe']],
+                tooltip_header={
+                        'annual_growth_rate': 'Modify this column to change GROWTH RATE parameter.\
+                            For 12.7% Growth Rate, enter: 0.127',
+                        'pe': 'Modify this column to change PE parameter'
+                    },
+                tooltip_delay=0,
+                tooltip_duration=None,
                 style_cell={
                     'whiteSpace': 'pre-line',
-                    'textAlign': 'left'}
+                    'textAlign': 'left'},
+                style_data_conditional=[
+                    {
+                        'if': {
+                            'filter_query': '{pe} >= 25',
+                            'column_id': 'pe'
+                                },
+                        'backgroundColor': '#ffbf00',
+                        'color': 'black'
+                        },
+                    {
+                        'if': {
+                            'filter_query': '{pe} <= 0',
+                            'column_id': 'pe'
+                                },
+                        'backgroundColor': '#FF4136',
+                        'color': 'white'
+                        },
+                    {
+                        'if': {
+                            'filter_query': '{annual_growth_rate} <= 0',
+                            'column_id': 'annual_growth_rate'
+                                },
+                        'backgroundColor': '#FF4136',
+                        'color': 'white'
+                        }
+                    ]
+                # tooltip_data=[
+                #         {
+                #             'PE': 'Minimum PE'
+                #         },
+                #         {
+                #             'PE': 'Maximum PE'
+                #         },
+                #         {
+                #             'PE': 'Mean PE'
+                #         },
+                #     ],
+                #     fill_width=False,
+
             )
     ),
 
@@ -384,6 +445,28 @@ app.layout = html.Div([
                     'fontWeight': 'bold',
                     'textAlign': 'center'
                     },
+                style_header_conditional=[{
+                    'if': {'column_id': col},
+                    'textDecoration': 'underline',
+                    'textDecorationStyle': 'dotted',
+                    } for col in ['EPS in 5 years', 'Future Value', 
+                                    'Present Value', 'Margin Price', 
+                                    'Buy/Sell']],
+                tooltip_header={
+                        'EPS in 5 years': 'Last EPS * (1 + Annual Growth Rate)^5.\
+                            If 1 + Annual Growth Rate < 0, it will get 0.',
+                        'Future Value': 'EPS in 5 years * PE',
+                        'Present Value': 'The present value is computed by \
+                            solving the equation: future value = present value\
+                            * (1 + Inflation per year)^5 years',
+                        'Margin Price': 'If EPS in 5 years > 0, Margin Price: \
+                            Present Value * (1 - Margin of Safety), \
+                            otherwise: 0',
+                        'Buy/Sell': 'If Current Share Price < Margin Price: Buy\
+                            otherwise: Sell'
+                },
+                tooltip_delay=0,
+                tooltip_duration=None,
                 style_cell={
                     'textAlign': 'left'
                     },
@@ -404,22 +487,6 @@ app.layout = html.Div([
                         'backgroundColor': '#FF4136',
                         'color': 'white'
                         },
-                    # {
-                    #     'if': {
-                    #         'filter_query': '{PE} >= 25',
-                    #         'column_id': 'PE'
-                    #             },
-                    #     'backgroundColor': '#ffbf00',
-                    #     'color': 'black'
-                    #     },
-                    # {
-                    #     'if': {
-                    #         'filter_query': '{PE} <= 0',
-                    #         'column_id': 'PE'
-                    #             },
-                    #     'backgroundColor': '#FF4136',
-                    #     'color': 'white'
-                    #     },
                     
                     ],
                     # tooltip_data=[

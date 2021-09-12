@@ -107,9 +107,15 @@ def growth_pe (stockpriceserie, financialdf):
     try:
         n_year = len(financialdf) # Year duration in financialdf
         growth_pe['growth_min'] = financialdf['epsgrowth'].min()
-        growth_pe['growth_mean'] = round(npf.rate(n_year, 0, 
-                                            -1*financialdf.eps.iloc[0], 
-                                            lasteps), 4)
+        if financialdf.eps.iloc[0] >= 0:
+            growth_pe['growth_mean'] = round(npf.rate(n_year, 0, 
+                                                -1*financialdf.eps.iloc[0], 
+                                                lasteps), 4)
+        else:
+            # The above equation doesn't work mathematicaly with negative 1st year EPS.
+            # As alternative, mean value will be used. 
+            growth_pe['growth_mean'] = financialdf['epsgrowth'].mean()
+
         growth_pe['growth_max'] = financialdf['epsgrowth'].max()
 
         pe_historical = min_mean_max_pe(stockpriceserie, financialdf)
@@ -173,7 +179,17 @@ def generate_decision_1 (ticker, financialdf, discountrate, marginrate,
     pe_ratio = float(parameters.pe)
     n_future_year = 5
     try:
-        futureeps = abs(npf.fv(annualgrowthrate, n_future_year, 0, lasteps))
+        if 1 + annualgrowthrate >= 0:
+            futureeps = abs(npf.fv(annualgrowthrate, n_future_year, 0, lasteps))
+        else:
+            # This is necessary to catch following condition:
+            # 1. Last EPS is negative value
+            # 2. 1 + annualgrowthrate < 0
+            # Necessary because if (1+annualgrowthrate)^5 will result in - value.
+            # And this negative value will negate the negative EPS. 
+            # Positive result in this value is mathematicaly correct but against
+            # a healthy understanding about business logic. 
+            futureeps = 0
         # print('5.1', [ticker, lasteps, futureeps])
         dfprice.loc[0] = [ticker, lasteps, futureeps]
         # print('5.2')
