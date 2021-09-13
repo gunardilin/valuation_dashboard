@@ -305,7 +305,8 @@ app.layout = html.Div([
                     'if': {'column_id': col},
                     'textDecoration': 'underline',
                     'textDecorationStyle': 'dotted',
-                    } for col in ['annual_growth_rate', 'pe']],
+                    } for col in ['historical_growth_rate', \
+                        'annual_growth_rate', 'pe']],
                 tooltip_header={
                         'historical_growth_rate': 'If (1 + EPS Growth Rate) > 0\
                              -> Annualized growth rate, if < 0 -> Mean value',
