@@ -289,11 +289,11 @@ app.layout = html.Div([
                 columns = [
                     dict(id='company', name='Company'),
                     dict(id='historical_growth_rate', 
-                        name='Historical Growth Rate\n (min, mean or annualized, max)'),
+                        name='Historical EPS Growth Rate\n (min, mean or annualized, max)'),
                     dict(id='historical_pe',
                         name='Historical PE\n (min, mean, max)'),
                     dict(id='annual_growth_rate',
-                        name='Annual Growth Rate\n %', type='numeric', 
+                        name='Annual EPS Growth Rate\n %', type='numeric', 
                         format=percentage, editable=True),
                     dict(id='pe', name='PE', editable=True)
                 ],
@@ -307,6 +307,8 @@ app.layout = html.Div([
                     'textDecorationStyle': 'dotted',
                     } for col in ['annual_growth_rate', 'pe']],
                 tooltip_header={
+                        'historical_growth_rate': 'If (1 + EPS Growth Rate) > 0\
+                             -> Annualized growth rate, if < 0 -> Mean value',
                         'annual_growth_rate': 'Modify this column to change GROWTH RATE parameter.\
                             For 12.7% Growth Rate, enter: 0.127',
                         'pe': 'Modify this column to change PE parameter'
