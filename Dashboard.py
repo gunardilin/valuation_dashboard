@@ -16,9 +16,10 @@ import dash_table
 import pandas as pd
 import numpy as np
 from get_stock_price import get_stocks_price
-from sp500 import get_sp500_info, format_for_dashdropdown
-from russel3000 import get_russel3000_info, get_russel_microcap_info
-from foreigncompanies import get_foreigncompanies_info
+from get_all_tickers import get_companies_from_sec, format_for_dashdropdown
+# from sp500 import get_sp500_info, format_for_dashdropdown
+# from russel3000 import get_russel3000_info, get_russel_microcap_info
+# from foreigncompanies import get_foreigncompanies_info
 from get_statement import get_statement # , open_in_excel
 from get_financial_df import get_financial_df, calculate_ratio
 from human_readable_format import readable_format, convert_percent
@@ -83,20 +84,25 @@ app.layout = html.Div([
         #     ],
         #     multi = True,
             # value='AAPL',
+
+    #     options=format_for_dashdropdown(pd.concat([ get_sp500_info(), 
+    #                                                 get_russel3000_info(),
+    #                                                 get_foreigncompanies_info(),
+    #                                                 get_russel_microcap_info()],
+    #                                                 ignore_index=True)) +
+    #     [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+    #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+    #     {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
+    #     {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
+    #     multi=True,
+
+    #     placeholder="You can select multiple companies",
+    # ),
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(pd.concat([ get_sp500_info(), 
-                                                    get_russel3000_info(),
-                                                    get_foreigncompanies_info(),
-                                                    get_russel_microcap_info()],
-                                                    ignore_index=True)) +
-        [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-        {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-        {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
-        {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
-        multi=True,
-
-        placeholder="You can select multiple companies",
+        options=format_for_dashdropdown(get_companies_from_sec()),
+        multi=True, 
+        placeholder="You can select multiple companies"
     ),
     html.Br(),
     # html.Hr(),
