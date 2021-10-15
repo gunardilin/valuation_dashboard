@@ -307,18 +307,47 @@ app.layout = html.Div([
                 style_header={
                     'backgroundColor': 'white', 'fontWeight': 'bold',
                     'textAlign': 'center'},
-                style_header_conditional=[{
-                    'if': {'column_id': col},
+                # style_header_conditional=[
+                #     # {"if": {"column_editable": True}, 
+                #     #     "backgroundColor": "rgb(250, 0, 0, 0.25)"},
+                #     {
+                #     'if': {'column_id': col},
+                #     'textDecoration': 'underline',
+                #     'textDecorationStyle': 'dotted',
+                #     } for col in ['historical_growth_rate', \
+                #         'annual_growth_rate', 'pe']
+                #         ],
+                style_header_conditional=[
+                    {
+                    'if': {'column_id': 'historical_growth_rate'},
                     'textDecoration': 'underline',
                     'textDecorationStyle': 'dotted',
-                    } for col in ['historical_growth_rate', \
-                        'annual_growth_rate', 'pe']],
+                    },
+                    {
+                    'if': {'column_id':'annual_growth_rate'},
+                    'textDecoration': 'underline',
+                    'textDecorationStyle': 'dotted',
+                    "backgroundColor": "rgb(250, 0, 0, 0.25)"
+                    },
+                    {
+                    'if': {'column_id':'pe'},
+                    'textDecoration': 'underline',
+                    'textDecorationStyle': 'dotted',
+                    "backgroundColor": "rgb(250, 0, 0, 0.25)"
+                    },
+                        ],
                 tooltip_header={
                         'historical_growth_rate': 'If (1 + EPS Growth Rate) > 0\
                              -> Annualized growth rate, if < 0 -> Mean value',
-                        'annual_growth_rate': 'Modify this column to change GROWTH RATE parameter.\
-                            For 12.7% Growth Rate, enter: 0.127',
-                        'pe': 'Modify this column to change PE parameter'
+                        'annual_growth_rate': {
+                            'value': 'This column is editable. \n\n For 12.7% \
+                            #     Growth Rate, enter: 0.127\n\n![edit]({})'.format(
+                                app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                                'type': 'markdown'},
+                        'pe': {
+                            'value': 'This column is editable.\n\n![edit]({})'.format(\
+                                app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                            'type': 'markdown'}
                     },
                 tooltip_delay=0,
                 tooltip_duration=None,
@@ -350,18 +379,24 @@ app.layout = html.Div([
                         'backgroundColor': '#FF4136',
                         'color': 'white'
                         }
-                    ]
-                # tooltip_data=[
-                #         {
-                #             'PE': 'Minimum PE'
-                #         },
-                #         {
-                #             'PE': 'Maximum PE'
-                #         },
-                #         {
-                #             'PE': 'Mean PE'
-                #         },
-                #     ],
+                    ],
+
+                tooltip={
+                            # column: {'value': 'This column is editable.\n\n![edit]({})'.format(
+                            #     app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                            #     'type': 'markdown'}
+                            # for column in ['annual_growth_rate', 'pe']
+                        'annual_growth_rate': {
+                            'value': 'This column is editable. \n\n For 12.7% \
+                            #     Growth Rate, enter: 0.127\n\n![edit]({})'.format(
+                                app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                                'type': 'markdown'},
+                        'pe': {
+                            'value': 'This column is editable.\n\n![edit]({})'.format(\
+                                app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                            'type': 'markdown'}
+                        },
+                    
                 #     fill_width=False,
 
             )
@@ -744,6 +779,8 @@ def show_parameters(stock_price_df_clientside, financial_df_clientside):
     print('3 Start')
     if len(stock_price_df_clientside) == 0 or len(financial_df_clientside) == 0:
         print('3A Finish')
+        print('3A', len(stock_price_df_clientside))
+        print('3A', len(financial_df_clientside))
         return []
     else:
         growth_pe_table = pd.DataFrame(columns=['ticker', 'historic_growthrate',
@@ -929,4 +966,4 @@ def buy_sell_decision(inflation, margin, tickers, financial_records,
         return []
                         
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
