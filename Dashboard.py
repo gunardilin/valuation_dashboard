@@ -341,7 +341,7 @@ app.layout = html.Div([
                              -> Annualized growth rate, if < 0 -> Mean value',
                         'annual_growth_rate': {
                             'value': 'This column is editable. \n\n For 12.7% \
-                            #     Growth Rate, enter: 0.127\n\n![edit]({})'.format(
+                            Growth Rate, enter: 0.127\n\n![edit]({})'.format(
                                 app.get_relative_path('/assets/images/Edit_Icon.jpg')),
                                 'type': 'markdown'},
                         'pe': {
@@ -388,7 +388,7 @@ app.layout = html.Div([
                             # for column in ['annual_growth_rate', 'pe']
                         'annual_growth_rate': {
                             'value': 'This column is editable. \n\n For 12.7% \
-                            #     Growth Rate, enter: 0.127\n\n![edit]({})'.format(
+                            Growth Rate, enter: 0.127\n\n![edit]({})'.format(
                                 app.get_relative_path('/assets/images/Edit_Icon.jpg')),
                                 'type': 'markdown'},
                         'pe': {
