@@ -6,7 +6,7 @@
 # Created Date: Friday, March 5th 2021, 3:24:22 pm
 # Author: Gunardi Ali
 # -----
-# Last Modified: Tuesday, September 7th 2021, 8:23:28 pm
+# Last Modified: Saturday, December 4th 2021, 12:51:40 pm
 # Modified By: Gunardi Ali
 # -----
 # Copyright (c) 2021 Gunardi Ali
@@ -33,12 +33,6 @@
 ###
 import datetime as dt
 from pandas_datareader import data
-
-def get_stock_price(ticker):
-    today = dt.datetime.now()
-    stockprice_df = data.DataReader(name=ticker, data_source="yahoo", start=today -
-                    dt.timedelta(days=5*365), end=today)
-    return stockprice_df
 
 def get_stocks_price(tickers: list):
     today = dt.datetime.now()

@@ -85,22 +85,25 @@ app.layout = html.Div([
         #     multi = True,
             # value='AAPL',
 
-    #     options=format_for_dashdropdown(pd.concat([ get_sp500_info(), 
-    #                                                 get_russel3000_info(),
-    #                                                 get_foreigncompanies_info(),
-    #                                                 get_russel_microcap_info()],
-    #                                                 ignore_index=True)) +
-    #     [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
-    #     {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
-    #     {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
-    #     {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
-    #     multi=True,
+        # options=format_for_dashdropdown(pd.concat([ get_sp500_info(), 
+        #                                             get_russel3000_info(),
+        #                                             get_foreigncompanies_info(),
+        #                                             get_russel_microcap_info()],
+        #                                             ignore_index=True)) +
+        # [{'label': 'Kirkland Lake Gold', 'value': 'KL'}, 
+        # {'label': 'Schrodinger Inc.', 'value': 'SDGR'},
+        # {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
+        # {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}],
+        # multi=True,
 
     #     placeholder="You can select multiple companies",
     # ),
         
         # For productive deployment use the following options:
-        options=format_for_dashdropdown(get_companies_from_sec()),
+        options=format_for_dashdropdown(get_companies_from_sec()) + [\
+            {'label': 'BYD Co. Ltd.', 'value': 'BYDDY'}, 
+            {'label': 'Tencent Holdings Limited', 'value': 'TCEHY'}
+            ],
         multi=True, 
         placeholder="You can select multiple companies"
     ),
