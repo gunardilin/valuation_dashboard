@@ -4,12 +4,12 @@
 import plotly.graph_objects as go
 import plotly.express as px
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output, State
 from dash_table import FormatTemplate
 # from dash_table.Format import Format, Scheme
-import dash_table
+from dash import dash_table
 # import dash_bootstrap_components as dbc
 # from datetime import datetime as dt
 
@@ -572,6 +572,15 @@ def update_stock_price_df_clientside(tickers):
     try:
         if len(tickers) != 0:
             stock_price_df = get_stocks_price(tickers)
+            # Change ticker format to be compatible with Marketwatch by
+            # replacing "-" with "." E.g. BRK-B -> BRK.B
+            newTickers = []
+            for i in tickers:
+                newTickers.append(i.replace("-", "."))
+            if len(tickers) == 1:
+                stock_price_df.name = newTickers[0]
+            else:
+                stock_price_df.columns = newTickers
             return stock_price_df.reset_index().to_dict('records')
         else:
             return []
@@ -726,10 +735,13 @@ def generate_financial_warning_df_table(startsignal, stock_tickers):
     print('2 Start')
     try:
         if len(stock_tickers) != 0:
-            # financial_df_table = calculate_ratio(get_financial_df(get_statement
-            #                                                       (stock_ticker)))
-            # company_ratio = lambda ticker: calculate_ratio(get_financial_df(
-            #     get_statement(ticker)))
+            # Change ticker format to be compatible with Marketwatch by
+            # replacing "-" with "." E.g. BRK-B -> BRK.B
+            newTickers = []
+            for i in stock_tickers:
+                newTickers.append(i.replace("-", "."))
+            stock_tickers = newTickers
+    
             financial_df_table = pd.DataFrame({})
             warning_df_table = pd.DataFrame({})
             for i in stock_tickers:
@@ -929,6 +941,13 @@ def buy_sell_decision(inflation, margin, tickers, financial_records,
                     stock_price_df_clientside, parameter):
     print('5 Start')
     if len(tickers) != 0:
+        # Change ticker format to be compatible with Marketwatch by
+        # replacing "-" with "." E.g. BRK-B -> BRK.B
+        newTickers = []
+        for i in tickers:
+            newTickers.append(i.replace("-", "."))
+        tickers = newTickers
+
         stock_price = pd.DataFrame.from_records(stock_price_df_clientside, \
             index='Date')
         stock_price.index = pd.to_datetime(stock_price.index)
@@ -969,4 +988,5 @@ def buy_sell_decision(inflation, margin, tickers, financial_records,
         return []
                         
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    # app.run_server(debug=True)
+    app.run_server(debug=False)

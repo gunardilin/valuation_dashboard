@@ -135,7 +135,8 @@ def min_mean_max_pe (stockpriceserie, financialdf):
     # print('b2')
     # print(financialdf.head())
     stockpricedf = pd.DataFrame(stockpriceserie)
-    stockpricedf['year'] = stockpricedf.index.year
+    stockpricedf['year'] = list(pd.DatetimeIndex(\
+        pd.to_datetime(stockpricedf.index, utc=True)).year)
 
     price = stockpricedf.groupby('year').tail(1).set_index('year').iloc[:,0]
     priceearning_byyear = pd.DataFrame()
