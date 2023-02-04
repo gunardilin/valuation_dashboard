@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import flask
 # from pandas_datareader import data
 import plotly.graph_objects as go
 import plotly.express as px
@@ -57,9 +58,10 @@ buy_sell_table_1 = pd.DataFrame({'Company': [],
 stock_price_df = 0
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__)
+server = flask.Flask(__name__)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets, server=server)
 
-server = app.server
+# server = app.server
 
 app.layout = html.Div([
     html.H1('Company valuation', 
@@ -990,3 +992,12 @@ def buy_sell_decision(inflation, margin, tickers, financial_records,
 if __name__ == '__main__':
     # app.run_server(debug=True)
     app.run_server(debug=False)
+    # To run in productive server, execute:
+    # Create index.py with following content: 
+    #       from Dashboard import app
+    #       server = app.server
+    # Type in Terminal: gunicorn Dashboard:server -b :8000
+    # Open http://127.0.0.1:8000
+    
+    # https://community.plotly.com/t/deploying-your-dash-app-to-heroku-the-magical-guide/46723
+    # https://fizzy.cc/deploy-dash-on-server/
