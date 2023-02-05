@@ -27,9 +27,6 @@ def convert_percent(n):
         return '{:.2f}%'.format(float(n)*100)
 
 if __name__ == '__main__':
-    # numlist = ['0', '100', '750', '1001', '1555', '1999', '231345', '12312454346456']
-    # result = map(readable_format, numlist)
-    # print(list(result))
     
     dec_list = ['0.1102', '0.234532', '-0.0037', '0.56']
     result = map(convert_percent, dec_list)

@@ -1,31 +1,23 @@
 # -*- coding: utf-8 -*-
 
 import flask
-# from pandas_datareader import data
-import plotly.graph_objects as go
 import plotly.express as px
 import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 from dash_table import FormatTemplate
-# from dash_table.Format import Format, Scheme
 from dash import dash_table
-# import dash_bootstrap_components as dbc
-# from datetime import datetime as dt
 
 import pandas as pd
 import numpy as np
 from get_stock_price import get_stocks_price
 from get_all_tickers import get_companies_from_sec, format_for_dashdropdown
-# from sp500 import get_sp500_info, format_for_dashdropdown
-# from russel3000 import get_russel3000_info, get_russel_microcap_info
-# from foreigncompanies import get_foreigncompanies_info
-from get_statement import get_statement # , open_in_excel
+from get_statement import get_statement
 from get_financial_df import get_financial_df, calculate_ratio
 from human_readable_format import readable_format, convert_percent
 from warning_sign import warning_sign
-from future_value import generate_decision_1, growth_pe #, generate_futureprice
+from future_value import generate_decision_1, growth_pe 
 
 financial_df_table = pd.DataFrame({'Company':[], 'Year':[], 
                                     'Shareholder Equity':[], 
@@ -43,11 +35,6 @@ percentage = FormatTemplate.percentage(2)
 
 # buy_sell_table might not need to be stored clientside, cos it will not be 
 # accessed by other callback.
-# buy_sell_table = pd.DataFrame({'Company': [], 'Annual Growth Rate': [],
-#                                'Last EPS': [], 'EPS in 10 years': [],
-#                                'PE': [], 'Future Value': [],
-#                                'Present Value': [], 'Margin Price': [], 
-#                                'Current Share Price': [],'Buy/Sell': []})
 
 buy_sell_table_1 = pd.DataFrame({'Company': [],
                                'Last EPS': [], 'EPS in 5 years': [],
@@ -60,8 +47,6 @@ stock_price_df = 0
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, server=server)
-
-# server = app.server
 
 app.layout = html.Div([
     html.H1('Company valuation', 
@@ -110,12 +95,10 @@ app.layout = html.Div([
         placeholder="You can select multiple companies"
     ),
     html.Br(),
-    # html.Hr(),
     
     dcc.Loading(
         id='loading-1', type='default',
         children = dcc.Graph(id='my-graph', figure={})
-        # fullscreen=True
     ),
     
     html.Div([
@@ -273,7 +256,6 @@ app.layout = html.Div([
                 marks={i: '{}%'.format(i) for i in range(-4, 9, 1)},
                 value=2),
             style={'width': '49%', 'display': 'inline-block'}
-            # ‘display’: ‘flex’, ‘align-items’: ‘center’, ‘justify-content’: ‘center’
         ),
         html.Div(
             dcc.Slider(
@@ -312,16 +294,6 @@ app.layout = html.Div([
                 style_header={
                     'backgroundColor': 'white', 'fontWeight': 'bold',
                     'textAlign': 'center'},
-                # style_header_conditional=[
-                #     # {"if": {"column_editable": True}, 
-                #     #     "backgroundColor": "rgb(250, 0, 0, 0.25)"},
-                #     {
-                #     'if': {'column_id': col},
-                #     'textDecoration': 'underline',
-                #     'textDecorationStyle': 'dotted',
-                #     } for col in ['historical_growth_rate', \
-                #         'annual_growth_rate', 'pe']
-                #         ],
                 style_header_conditional=[
                     {
                     'if': {'column_id': 'historical_growth_rate'},
@@ -387,10 +359,6 @@ app.layout = html.Div([
                     ],
 
                 tooltip={
-                            # column: {'value': 'This column is editable.\n\n![edit]({})'.format(
-                            #     app.get_relative_path('/assets/images/Edit_Icon.jpg')),
-                            #     'type': 'markdown'}
-                            # for column in ['annual_growth_rate', 'pe']
                         'annual_growth_rate': {
                             'value': 'This column is editable. \n\n For 12.7% \
                             Growth Rate, enter: 0.127\n\n![edit]({})'.format(
@@ -410,78 +378,6 @@ app.layout = html.Div([
     html.Br(),
     html.Hr(),
     html.H3('Intrinsic value based on EPS:'),
-    
-    # dcc.Loading(
-    #     id='loading-5', type='default',
-    #     children = 
-    #         dash_table.DataTable(
-    #             id='buy_sell',
-    #             columns=[{"name": i, "id": i} for i in buy_sell_table.columns],
-    #             data=buy_sell_table.to_dict('records'),
-    #             style_header={
-    #                 'backgroundColor': 'white', 
-    #                 'fontWeight': 'bold',
-    #                 'textAlign': 'center'
-    #                 },
-    #             style_cell={
-    #                 'textAlign': 'left'
-    #                 },
-    #             style_data_conditional=[
-    #                 {
-    #                     'if': {
-    #                         'filter_query': '{Buy/Sell} contains "Buy"',
-    #                         'column_id': 'Buy/Sell'
-    #                     },
-    #                     'backgroundColor': '#3D9970',
-    #                     'color': 'white'
-    #                     },
-    #                 {
-    #                     'if': {
-    #                         'filter_query': '{Buy/Sell} contains "Sell"',
-    #                         'column_id': 'Buy/Sell'
-    #                             },
-    #                     'backgroundColor': '#FF4136',
-    #                     'color': 'white'
-    #                     },
-    #                 {
-    #                     'if': {
-    #                         'filter_query': '{PE} >= 25',
-    #                         'column_id': 'PE'
-    #                             },
-    #                     'backgroundColor': '#ffbf00',
-    #                     'color': 'black'
-    #                     },
-    #                 {
-    #                     'if': {
-    #                         'filter_query': '{PE} <= 0',
-    #                         'column_id': 'PE'
-    #                             },
-    #                     'backgroundColor': '#FF4136',
-    #                     'color': 'white'
-    #                     },
-                    
-    #                 ],
-    #                 tooltip_data=[
-    #                     {
-    #                         'PE': 'Minimum PE'
-    #                     },
-    #                     {
-    #                         'PE': 'Maximum PE'
-    #                     },
-    #                     {
-    #                         'PE': 'Mean PE'
-    #                     },
-    #                 ],
-    #                 tooltip_header={
-    #                     # i: i for i in buy_sell_table.columns
-    #                 'PE': 'Price Earning Ratio'
-    #                     },
-    #                 # fill_width=False,
-    #                 # tooltip_delay=0,
-    #                 # tooltip_duration=2
-    #             ),
-    #     # fullscreen=True
-    # ),
 
     dcc.Loading(
         id='loading-6', type='default',
@@ -539,22 +435,7 @@ app.layout = html.Div([
                         },
                     
                     ],
-                    # tooltip_data=[
-                    #     {
-                    #         'PE': 'Minimum PE'
-                    #     },
-                    #     {
-                    #         'PE': 'Maximum PE'
-                    #     },
-                    #     {
-                    #         'PE': 'Mean PE'
-                    #     },
-                    # ],
-                    # fill_width=False,
-                    # tooltip_delay=0,
-                    # tooltip_duration=2
                 ),
-        # fullscreen=True
     ),
     
     
@@ -806,20 +687,13 @@ def show_parameters(stock_price_df_clientside, financial_df_clientside):
         pd.options.display.float_format = '{:20,.2f}'.format
 
         # Preprocessing clientside-dfs for further process
-        # print(stock_price_df_clientside[:3])
-        # print(financial_df_clientside[0], financial_df_clientside[-1])
         stock_price = pd.DataFrame.from_records(stock_price_df_clientside, index="Date")
         stock_price.index = pd.to_datetime(stock_price.index)
-        # print(stock_price.head())
-        # financial_df = pd.DataFrame.from_records(financial_df_clientside)
-        # print(financial_df_clientside)
         financial_df = pd.DataFrame.from_records(financial_df_clientside, \
             index='index')
         
         # Checking if the financial_df and stock_price df are up to date by
         # comparing with the dropdown value.
-        # print('3', list(financial_df.Company.unique()))
-        # print('3', list(stock_price.columns))
         if list(financial_df.Company.unique()) != list(stock_price.columns):
             print('3B Finish')
             return []
@@ -854,79 +728,6 @@ def show_parameters(stock_price_df_clientside, financial_df_clientside):
                 'historic_pe': 'historical_pe',
                 'growthrate': 'annual_growth_rate'
             }).to_dict('records')
-    #     else:
-    #         print('3 Finish')
-    #         return []
-    # except TypeError: # To catch object Nonetype -> TypeError
-    #     print('3 Finish')
-    #     # pass
-    #     return []
-
-# # For buy_sell_table 4
-# @app.callback(
-#     Output(component_id='buy_sell', component_property='data'),
-#     Input(component_id='inflation_slider', component_property='value'),
-#     Input(component_id='margin_slider', component_property='value'),
-#     Input(component_id='my-dropdown', component_property='value'),
-#     Input(component_id='financial_df', component_property='data'), # Start signal no. 1
-#     Input(component_id='stock_price_df_clientside', component_property='data'), # Also necessary as start signal no. 2
-#     State(component_id='financial_df_table_clientside', component_property='data'),
-#     prevent_initial_call=True)
-# def generate_decision(inflation, margin, tickers, start1, stock_price_df_clientside,
-#                       financial_df_clientside):
-#     print('4 Start')
-#     if tickers == None:
-#         print ('4 Finish')
-#         return []
-#     elif len(tickers) != 0:
-#         # Formating stock_price_df_clientside
-#         stock_price = pd.DataFrame.from_records(stock_price_df_clientside, \
-#             index='Date')
-#         stock_price.index = pd.to_datetime(stock_price.index)
-#         # print('*** Ticker:', ticker)
-#         # print('*** Inflation in 10 Y:', inflation)
-#         # print('*** Margin of Safety:', margin)
-#         # print('*** Stock price:', stock_price.tail())
-        
-#         # Formating financial_df_clientside
-#         financial_df = pd.DataFrame.from_records(financial_df_clientside, \
-#             index='index')
-#         # print('*** Financial DF:\n', financial_df.tail())
-#         futureprice_df = pd.DataFrame({})
-#         for ticker in tickers:
-#             # print(financial_df[financial_df['Ticker'] == ticker])
-#             futureprice_df = pd.concat([futureprice_df, generate_futureprice(
-#                                         ticker, 
-#                                         financial_df[financial_df['Company'] == ticker], 
-#                                         inflation/100, margin/100, 
-#                                         stock_price[ticker])])
-#             # print(futureprice_df)
-#             # print(futureprice_df.pe)
-#         futureprice_df.reset_index(inplace=True)
-#         # print(futureprice_df)
-#         buy_sell_table = futureprice_df.rename(columns={
-#             'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',
-#             'lasteps': 'Last EPS', 'futureeps': 'EPS in 10 years', 
-#             'pe': 'PE', 'marginprice': 'Margin Price',
-#             'currentshareprice': 'Current Share Price', 'decision': 'Buy/Sell',
-#             'PV': 'Present Value', 'FV': 'Future Value'
-#             })
-#         buy_sell_table[['Annual Growth Rate']] = buy_sell_table[[
-#             'Annual Growth Rate']].applymap(convert_percent)
-#         buy_sell_table[['Last EPS', 'EPS in 10 years', 'PE', 
-#                         'Future Value', 'Present Value', 
-#                         'Margin Price', 'Current Share Price']] = np.round(
-#                             buy_sell_table[['Last EPS', 'EPS in 10 years', 
-#                                             'PE', 
-#                                             'Future Value', 'Present Value', 
-#                                             'Margin Price', 
-#                                             'Current Share Price']], 2)
-#         buy_sell_table_written = buy_sell_table.to_dict('records')
-#         print('4 Finish')
-#         return buy_sell_table_written
-#     else:
-#         print('4 Finish')
-#         return []
 
 # For buy_sell_table_1 5
 @app.callback(
@@ -955,8 +756,6 @@ def buy_sell_decision(inflation, margin, tickers, financial_records,
         stock_price.index = pd.to_datetime(stock_price.index)
         financial_df = pd.DataFrame.from_records(financial_records)
         parameter_df = pd.DataFrame.from_records(parameter, index='company')
-        # print('parameter_df_column', parameter_df.columns)
-        # print('parameter_df', parameter_df)
         decision_df = pd.DataFrame({})
         for ticker in tickers:
             decision_df = pd.concat([decision_df, generate_decision_1(
@@ -979,10 +778,7 @@ def buy_sell_decision(inflation, margin, tickers, financial_records,
                     decision_table_1[['EPS in 5 years', 'Future Value', 
                         'Present Value', 'Margin Price', 'Current Share Price']],
                          2)
-        # print('decision_table_1', decision_table_1)
         decision_table_1_written = decision_table_1.to_dict('records')
-        # print('decision_table_1_written')
-        # print(decision_table_1_written)
         print('5 Finish')
         return decision_table_1_written
     else:

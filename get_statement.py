@@ -7,8 +7,6 @@ Created on Fri Mar 12 16:12:35 2021
 import pandas as pd
 import numpy as np
 import sys
-# import html5lib
-# from bs4 import BeautifulSoup
 
 def remove_coma(string):
     if type(string) == str:
@@ -19,8 +17,6 @@ def remove_coma(string):
 def get_statement(ticker):
     balance_sheet_url = "https://www.marketwatch.com/investing/stock/" + ticker + "/financials/balance-sheet"
     income_url = "https://www.marketwatch.com/investing/stock/" + ticker + "/financials"
-    #cashflow_url = "https://www.marketwatch.com/investing/stock/" + ticker + "/financials/cash-flow"
-    #urls = [balance_sheet_url, income_url, cashflow_url]
     urls = [balance_sheet_url, income_url]
     tables_list = []  # list for all table dataframes
     pattern = {'\((.*)\)': '-\\1',    # convert (x) to -x
@@ -35,7 +31,6 @@ def get_statement(ticker):
         tables = pd.read_html(url, match="Item", index_col=0, thousands=',') # Scrape only tables with word 'Item' in it
         for i in range(len(tables)):
             tables[i] = tables[i].applymap(remove_coma)
-            #tables[i].to_csv('table{}.csv'.format(i))
             # remove the duplicate from index.
             tables[i].index = list(map(lambda x: " ".join(dict.fromkeys(x.lower().split())), tables[i].index))
             if not tables[i].columns[-1].isdigit(): # If a column has no digit character, drop it

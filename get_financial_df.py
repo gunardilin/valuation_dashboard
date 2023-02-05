@@ -31,8 +31,6 @@ def get_financial_df(tables_list):
     return table_df
 
 def calculate_ratio(financial_df):
-    # financial_df.longtermdebt[financial_df.longtermdebt.isnull()] = 0
-    # financial_df.interestexpense[financial_df.interestexpense.isnull()] = 0
     financial_df['roe'] = financial_df.netincome / financial_df.shareholderequity
     financial_df['interestcoverageratio'] = financial_df.ebitda / \
         financial_df.interestexpense
