@@ -46,9 +46,9 @@ stock_price_df = 0
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 server = flask.Flask(__name__)
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets, server=server)
+application = dash.Dash(__name__, external_stylesheets=external_stylesheets, server=server)
 
-app.layout = html.Div([
+application.layout = html.Div([
     html.H1('Company valuation', 
         style={
             'textAlign': 'center'
@@ -319,11 +319,11 @@ app.layout = html.Div([
                         'annual_growth_rate': {
                             'value': 'This column is editable. \n\n For 12.7% \
                             Growth Rate, enter: 0.127\n\n![edit]({})'.format(
-                                app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                                application.get_relative_path('/assets/images/Edit_Icon.jpg')),
                                 'type': 'markdown'},
                         'pe': {
                             'value': 'This column is editable.\n\n![edit]({})'.format(\
-                                app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                                application.get_relative_path('/assets/images/Edit_Icon.jpg')),
                             'type': 'markdown'}
                     },
                 tooltip_delay=0,
@@ -362,11 +362,11 @@ app.layout = html.Div([
                         'annual_growth_rate': {
                             'value': 'This column is editable. \n\n For 12.7% \
                             Growth Rate, enter: 0.127\n\n![edit]({})'.format(
-                                app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                                application.get_relative_path('/assets/images/Edit_Icon.jpg')),
                                 'type': 'markdown'},
                         'pe': {
                             'value': 'This column is editable.\n\n![edit]({})'.format(\
-                                app.get_relative_path('/assets/images/Edit_Icon.jpg')),
+                                application.get_relative_path('/assets/images/Edit_Icon.jpg')),
                             'type': 'markdown'}
                         },
                     
@@ -446,7 +446,7 @@ app.layout = html.Div([
 ])
 
 # For stock_price_df_clientside 0
-@app.callback(
+@application.callback(
     Output(component_id='stock_price_df_clientside', component_property='data'),
     Input(component_id='my-dropdown', component_property='value'),
     prevent_initial_call=True)
@@ -473,7 +473,7 @@ def update_stock_price_df_clientside(tickers):
         print('0 Finish', tickers)
 
 # For stock graph 1
-@app.callback(
+@application.callback(
     Output(component_id='my-graph', component_property='figure'),
     Input(component_id='stock_price_df_clientside', component_property='data'),
     Input(component_id='view-periode', component_property='value'),
@@ -607,7 +607,7 @@ def company_ratio (ticker):
     df_warning['Company'] = ticker
     return df_ratio, df_warning
 
-@app.callback(
+@application.callback(
     Output(component_id='financial_df', component_property='data'),
     Output(component_id='warning_df', component_property='data'),
     Output(component_id='financial_df_table_clientside', component_property='data'),
@@ -652,11 +652,7 @@ def generate_financial_warning_df_table(startsignal, stock_tickers):
                     'EPS-Growth', 'netincome': 'Net Income', 'roa': 'ROA', 
                     'interestexpense': 'Interest Expense', 'ebitda': 'EBITDA',
                     'roe': 'ROE', 'interestcoverageratio': 'Interest Coverage Ratio'})
-            
-            # Generate Warning_df_table
-            # warning_df_table = pd.DataFrame(warning_sign(financial_df_table), 
-            #                                 columns=['Warning'])
-            # warning_df_table['Company'] = stock_ticker
+            df_written.sort_values(by=['Company', 'Year'], inplace=True)
             print('2 finish')
             return df_written.to_dict('records'), warning_df_table.to_dict('records'), \
                 financial_df_table.reset_index().to_dict('records')
@@ -668,7 +664,7 @@ def generate_financial_warning_df_table(startsignal, stock_tickers):
         return [], [], []
 
 # # For growth_pe table 3
-@app.callback(
+@application.callback(
     Output(component_id='growth_pe', component_property='data'),
     Input(component_id='stock_price_df_clientside', component_property='data'),
     Input(component_id='financial_df_table_clientside', component_property='data'),
@@ -730,7 +726,7 @@ def show_parameters(stock_price_df_clientside, financial_df_clientside):
             }).to_dict('records')
 
 # For buy_sell_table_1 5
-@app.callback(
+@application.callback(
     Output(component_id='buy_sell_1', component_property='data'),
     Input(component_id='inflation_slider', component_property='value'),
     Input(component_id='margin_slider', component_property='value'),
@@ -786,14 +782,18 @@ def buy_sell_decision(inflation, margin, tickers, financial_records,
         return []
                         
 if __name__ == '__main__':
-    # app.run_server(debug=True)
-    app.run_server(debug=False)
-    # To run in productive server, execute:
+    # application.run_server(debug=True)
+    application.run_server(debug=False)
+    
+    # To run in Flask server, execute:
     # Create index.py with following content: 
-    #       from Dashboard import app
-    #       server = app.server
+    #       from Dashboard import application
+    #       server = application.server
     # Type in Terminal: gunicorn Dashboard:server -b :8000
     # Open http://127.0.0.1:8000
     
     # https://community.plotly.com/t/deploying-your-dash-app-to-heroku-the-magical-guide/46723
     # https://fizzy.cc/deploy-dash-on-server/
+    
+    # To deploy on AWS Beanstalk:
+    # https://www.youtube.com/watch?v=fGxY_Hji8_U&t=101s

@@ -1,3 +1,3 @@
-from Dashboard import app
+from application import application
 
-server = app.server
+server = application.server
