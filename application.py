@@ -783,7 +783,8 @@ def buy_sell_decision(inflation, margin, tickers, financial_records,
                         
 if __name__ == '__main__':
     # application.run_server(debug=True)
-    application.run_server(debug=False)
+    # application.run_server(debug=False)
+    application.run()
     
     # To run in Flask server, execute:
     # Create index.py with following content: 

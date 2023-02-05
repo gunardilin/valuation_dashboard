@@ -1,5 +1,4 @@
 appdirs==1.4.4
-appscript==1.2.2
 beautifulsoup4==4.11.2
 certifi==2022.12.7
 cffi==1.15.1
