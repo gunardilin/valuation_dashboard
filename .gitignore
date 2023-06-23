@@ -4,3 +4,4 @@ Other/
 .vscode/
 *.ipynb
 .DS_Store
+my_env/

@@ -8,7 +8,7 @@ import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
-from dash_table import FormatTemplate
+from dash.dash_table import FormatTemplate
 # from dash_table.Format import Format, Scheme
 from dash import dash_table
 # import dash_bootstrap_components as dbc

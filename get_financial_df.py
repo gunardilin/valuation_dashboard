@@ -28,6 +28,13 @@ def get_financial_df(tables_list):
              })
     table_df.longtermdebt[table_df.longtermdebt.isnull()] = 0
     table_df.interestexpense[table_df.interestexpense.isnull()] = 0
+    
+    # Sometimes the dataset is shown in wrong year sequence.
+    # Therefore it needs to be sorted by year index and
+    # the epsgrowth needs to be calculated manually.
+    table_df.sort_index(inplace=True)
+    table_df.epsgrowth = table_df.eps.pct_change()
+    
     return table_df
 
 def calculate_ratio(financial_df):
@@ -43,6 +50,6 @@ def calculate_ratio(financial_df):
 
 if __name__ == "__main__":
     from get_statement import get_statement, open_in_excel
-    # open_in_excel(get_financial_df(get_statement('fb')))
+    open_in_excel(get_financial_df(get_statement('BYDDY')))
     # print(calculate_ratio(get_financial_df(get_statement('coke'))))
-    open_in_excel(calculate_ratio(get_financial_df(get_statement('fb'))))
+    open_in_excel(calculate_ratio(get_financial_df(get_statement('BYDDY'))))
