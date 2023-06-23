@@ -6,5 +6,6 @@ pandas-datareader==0.10.0
 requests==2.28.1
 numpy-financial==1.0.0
 yfinance==0.2.9
+xlwings==0.30.10
 gunicorn
 
