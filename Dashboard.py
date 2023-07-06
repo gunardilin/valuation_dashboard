@@ -27,6 +27,8 @@ from human_readable_format import readable_format, convert_percent
 from warning_sign import warning_sign
 from future_value import generate_decision_1, growth_pe #, generate_futureprice
 
+import webbrowser
+
 financial_df_table = pd.DataFrame({'Company':[], 'Year':[], 
                                     'Shareholder Equity':[], 
                                     'Long-Term Debt':[], 'Net Income': [],
@@ -64,11 +66,18 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets, server=serv
 # server = app.server
 
 app.layout = html.Div([
-    html.H1('Company valuation', 
-        style={
-            'textAlign': 'center'
-            }
-        ),
+    html.Div([
+        html.H1('Company valuation', 
+            style={
+                'textAlign': 'center', 'width': '90%', 'display': 'inline-block'
+                }
+            ),
+        html.Button('Help', id='help-button', n_clicks=0,
+            style={'textAlign': 'center', 'width': 'fit-content', 'display': 'inline-block',
+                   'padding': '0px 5px', 'float': 'right'
+                }),
+        ])
+    ,
     html.H3('Choose stock tickers:'),
     
     dcc.Dropdown(
@@ -564,6 +573,20 @@ app.layout = html.Div([
     dcc.Store(id='financial_df_table_clientside', data=[])
 ])
 
+# For help button -1
+@app.callback(
+    Output(component_id="help-button", component_property="style"),
+    Input(component_id="help-button", component_property="n_clicks"),
+    prevent_initial_call=True)
+def open_help(help_button):
+    url = "https://gunardilin.github.io/mysite/post/project-1/"
+    new = 2 # open in a new tab, if possible
+    webbrowser.open(url,new=new)
+    return {'textAlign': 'center', 'width': 'fit-content', 
+            'display': 'inline-block',
+            'padding': '0px 5px', 'float': 'right'
+                }
+
 # For stock_price_df_clientside 0
 @app.callback(
     Output(component_id='stock_price_df_clientside', component_property='data'),
@@ -854,79 +877,6 @@ def show_parameters(stock_price_df_clientside, financial_df_clientside):
                 'historic_pe': 'historical_pe',
                 'growthrate': 'annual_growth_rate'
             }).to_dict('records')
-    #     else:
-    #         print('3 Finish')
-    #         return []
-    # except TypeError: # To catch object Nonetype -> TypeError
-    #     print('3 Finish')
-    #     # pass
-    #     return []
-
-# # For buy_sell_table 4
-# @app.callback(
-#     Output(component_id='buy_sell', component_property='data'),
-#     Input(component_id='inflation_slider', component_property='value'),
-#     Input(component_id='margin_slider', component_property='value'),
-#     Input(component_id='my-dropdown', component_property='value'),
-#     Input(component_id='financial_df', component_property='data'), # Start signal no. 1
-#     Input(component_id='stock_price_df_clientside', component_property='data'), # Also necessary as start signal no. 2
-#     State(component_id='financial_df_table_clientside', component_property='data'),
-#     prevent_initial_call=True)
-# def generate_decision(inflation, margin, tickers, start1, stock_price_df_clientside,
-#                       financial_df_clientside):
-#     print('4 Start')
-#     if tickers == None:
-#         print ('4 Finish')
-#         return []
-#     elif len(tickers) != 0:
-#         # Formating stock_price_df_clientside
-#         stock_price = pd.DataFrame.from_records(stock_price_df_clientside, \
-#             index='Date')
-#         stock_price.index = pd.to_datetime(stock_price.index)
-#         # print('*** Ticker:', ticker)
-#         # print('*** Inflation in 10 Y:', inflation)
-#         # print('*** Margin of Safety:', margin)
-#         # print('*** Stock price:', stock_price.tail())
-        
-#         # Formating financial_df_clientside
-#         financial_df = pd.DataFrame.from_records(financial_df_clientside, \
-#             index='index')
-#         # print('*** Financial DF:\n', financial_df.tail())
-#         futureprice_df = pd.DataFrame({})
-#         for ticker in tickers:
-#             # print(financial_df[financial_df['Ticker'] == ticker])
-#             futureprice_df = pd.concat([futureprice_df, generate_futureprice(
-#                                         ticker, 
-#                                         financial_df[financial_df['Company'] == ticker], 
-#                                         inflation/100, margin/100, 
-#                                         stock_price[ticker])])
-#             # print(futureprice_df)
-#             # print(futureprice_df.pe)
-#         futureprice_df.reset_index(inplace=True)
-#         # print(futureprice_df)
-#         buy_sell_table = futureprice_df.rename(columns={
-#             'ticker': 'Company', 'annualgrowthrate': 'Annual Growth Rate',
-#             'lasteps': 'Last EPS', 'futureeps': 'EPS in 10 years', 
-#             'pe': 'PE', 'marginprice': 'Margin Price',
-#             'currentshareprice': 'Current Share Price', 'decision': 'Buy/Sell',
-#             'PV': 'Present Value', 'FV': 'Future Value'
-#             })
-#         buy_sell_table[['Annual Growth Rate']] = buy_sell_table[[
-#             'Annual Growth Rate']].applymap(convert_percent)
-#         buy_sell_table[['Last EPS', 'EPS in 10 years', 'PE', 
-#                         'Future Value', 'Present Value', 
-#                         'Margin Price', 'Current Share Price']] = np.round(
-#                             buy_sell_table[['Last EPS', 'EPS in 10 years', 
-#                                             'PE', 
-#                                             'Future Value', 'Present Value', 
-#                                             'Margin Price', 
-#                                             'Current Share Price']], 2)
-#         buy_sell_table_written = buy_sell_table.to_dict('records')
-#         print('4 Finish')
-#         return buy_sell_table_written
-#     else:
-#         print('4 Finish')
-#         return []
 
 # For buy_sell_table_1 5
 @app.callback(
