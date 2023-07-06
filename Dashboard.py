@@ -27,8 +27,6 @@ from human_readable_format import readable_format, convert_percent
 from warning_sign import warning_sign
 from future_value import generate_decision_1, growth_pe #, generate_futureprice
 
-import webbrowser
-
 financial_df_table = pd.DataFrame({'Company':[], 'Year':[], 
                                     'Shareholder Equity':[], 
                                     'Long-Term Debt':[], 'Net Income': [],
@@ -72,10 +70,11 @@ app.layout = html.Div([
                 'textAlign': 'center', 'width': '90%', 'display': 'inline-block'
                 }
             ),
-        html.Button('Help', id='help-button', n_clicks=0,
-            style={'textAlign': 'center', 'width': 'fit-content', 'display': 'inline-block',
-                   'padding': '0px 5px', 'float': 'right'
-                }),
+        html.A(html.Button("Help"), 
+               href='https://gunardilin.github.io/mysite/post/project-1/', 
+               target="_blank",
+               style={'float':'right', 
+                      'textAlign': 'center'}),
         ])
     ,
     html.H3('Choose stock tickers:'),
@@ -572,20 +571,6 @@ app.layout = html.Div([
     dcc.Store(id='stock_price_df_clientside', data=[]),
     dcc.Store(id='financial_df_table_clientside', data=[])
 ])
-
-# For help button -1
-@app.callback(
-    Output(component_id="help-button", component_property="style"),
-    Input(component_id="help-button", component_property="n_clicks"),
-    prevent_initial_call=True)
-def open_help(help_button):
-    url = "https://gunardilin.github.io/mysite/post/project-1/"
-    new = 2 # open in a new tab, if possible
-    webbrowser.open(url,new=new)
-    return {'textAlign': 'center', 'width': 'fit-content', 
-            'display': 'inline-block',
-            'padding': '0px 5px', 'float': 'right'
-                }
 
 # For stock_price_df_clientside 0
 @app.callback(
