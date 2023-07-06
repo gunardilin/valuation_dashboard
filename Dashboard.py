@@ -604,7 +604,7 @@ def update_graph(stock_price_df_clientside, periode, mode):
         # Don't execute if df_clientside is empty.
         stock_price_df = pd.DataFrame.from_records(stock_price_df_clientside, \
             index='Date')
-        stock_price_df.index = pd.to_datetime(stock_price_df.index)
+        stock_price_df.index = pd.to_datetime(stock_price_df.index, utc=True)
 
         if periode == 'All':
             stock_price_in_periode = stock_price_df
